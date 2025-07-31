@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>FlowCheck Startskärm</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    #main-container {
+      background-color: #333;
+      padding: 20px;
+      width: 450px;
+      height: 100vh;
+      box-sizing: border-box;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    #top-row-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    #selectors-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #objective-select-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    #selectors-container select {
+      padding: 5px 10px;
+      font-size: 14px;
+      height: 30px;
+      cursor: pointer;
+      box-sizing: border-box;
+      line-height: normal;
+      background-color: white;
+    }
+
+    #selectors-container label {
+      font-size: 14px;
+      color: white;
+    }
+
+    #new-moodboard {
+      background-color: #009723;
+      padding: 8px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #new-moodboard:hover {
+      background-color: #007f1c;
+    }
+
+
+
+
+    #top-buttons-container button {
+      position: absolute;
+      top: -45px;
+      padding: 8px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #undo-button-top {
+      background-color: #6c757d;
+
+    }
+
+    #undo-button-top:hover {
+      background-color: #5a6268;
+    }
+
+    #canvas-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      z-index: 10;
+      border: 1px solid #ccc;
+      margin: auto;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    #history-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 400px;
+      height: 400px;
+      background-color: rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #suggestions {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      text-align: center;
+      display: none;
+      font-size: 24px;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+      z-index: 15;
+      cursor: pointer;
+    }
+
+    #mood-selector {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      display: none;
+      z-index: 15;
+    }
+
+    .mood-box {
+      width: 200px;
+      height: 200px;
+      position: absolute;
+      text-align: center;
+      line-height: 200px;
+      font-size: 18px;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    #mood-good {
+      background-color: rgba(0, 200, 0, 0.5);
+      bottom: 0;
+      right: 0;
+    }
+
+    #mood-sad {
+      background-color: rgba(0, 0, 200, 0.5);
+      top: 0;
+      left: 0;
+    }
+
+    #mood-happy {
+      background-color: rgba(255, 215, 0, 0.5);
+      top: 0;
+      right: 0;
+    }
+
+    #mood-bad {
+      background-color: rgba(200, 0, 0, 0.5);
+      bottom: 0;
+      left: 0;
+    }
+
+    #mood-neutral {
+      background-color: #ffffff;
+      color: gray;
+      width: 80px;
+      height: 80px;
+      position: absolute;
+      top: 50%;
+      text-shadow: none;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(45deg);
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #mood-neutral span {
+      transform: rotate(-45deg);
+      display: block;
+      font-size: 18px;
+      color: rgb(137, 137, 137);
+      white-space: nowrap;
+    }
+
+    #toggle-view-container {
+      position: absolute;
+      bottom: -47px;
+      left: 0;
+      z-index: 20;
+    }
+
+    #toggle-view-button {
+      padding: 8px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: transparent;
+      border: 1px solid white;
+      border-radius: 5px;
+      color: white;
+      min-width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+
+    #toggle-view-button.live-mode-toggle {
+      border: 1px solid red;
+      color: red;
+    }
+
+    #toggle-view-button.playback-mode-toggle {
+      background-color: transparent;
+      color: #ccc;
+      border-color: grey;
+    }
+
+    #live-indicator {
+      width: 10px;
+      height: 10px;
+      background-color: red;
+      border-radius: 50%;
+      margin-right: 8px;
+      display: none;
+    }
+
+    #display-mode-label {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+    }
+
+    #live-mode-dot {
+      width: 10px;
+      height: 10px;
+      background-color: rgb(221, 221, 221);
+      border-radius: 50%;
+      margin-right: 5px;
+      display: none;
+    }
+
+    @keyframes pulse {
+      0% { background-color: rgb(221, 221, 221); }
+      50% { background-color: rgb(255, 255, 255); }
+      100% { background-color: rgb(221, 221, 221); }
+    }
+
+    #live-mode-dot.blinking {
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    #current-point-time-label {
+      position: absolute;
+      top: 30px;
+      right: 10px;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 20;
+      text-align: right;
+      display: none;
+    }
+
+    #playback-navigation-controls {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      gap: 10px;
+    }
+
+    #playback-navigation-controls button {
+      padding: 0 10px;
+      font-size: 24px;
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+      color: white;
+      box-shadow: none;
+    }
+
+    #note-input-container {
+      position: fixed;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      width: 300px;
+      display: none;
+      text-align: center;
+    }
+
+    #note-input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 24px;
+      padding: 5px 0;
+      text-align: center;
+      outline: none;
+      border-bottom: 2px dashed white;
+    }
+
+    #note-input::placeholder {
+      color: rgba(200, 200, 200, 0.7);
+    }
+
+    .corner-line {
+      position: absolute;
+      background-color: white;
+      z-index: 15;
+    }
+
+    .corner-line.horizontal {
+      height: 3px;
+      width: 50px;
+    }
+
+    .corner-line.vertical {
+      width: 3px;
+      height: 50px;
+    }
+
+    #corner-tl-h { top: -7px; left: -7px; }
+    #corner-tl-v { top: -7px; left: -7px; }
+    #corner-tr-h { top: -7px; right: -7px; }
+    #corner-tr-v { top: -7px; right: -7px; }
+    #corner-bl-h { bottom: -7px; left: -7px; }
+    #corner-bl-v { bottom: -7px; left: -7px; }
+    #corner-br-h { bottom: -7px; right: -7px; }
+    #corner-br-v { bottom: -7px; right: -7px; }
+
+    /* Styles for the pause icon */
+    #pause-icon {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 20px;
+      display: none;
+      z-index: 20;
+    }
+
+    #pause-icon::before,
+    #pause-icon::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 8px;
+      height: 100%;
+      background-color: white;
+    }
+
+    #pause-icon::before {
+      left: 0;
+    }
+
+    #pause-icon::after {
+      right: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="main-container">
+    <div id="top-row-container">
+      <button id="new-moodboard">Ny</button>
+      <div id="selectors-container">
+        <div id="objective-select-wrapper">
+          <label for="objective-select">Målsättning:</label>
+          <select id="objective-select">
+            <option value="Uppgift">Uppgift</option>
+            <option value="Kontakt">Kontakt</option>
+            <option value="Självkänsla">Självkänsla</option>
+            <option value="Hälsa & Träning">Hälsa & Träning</option>
+            <option value="Kreativitet">Kreativitet</option>
+            <option value="Lärande">Lärande</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div id="canvas-container">
+      <div id="top-buttons-container">
+          <button id="undo-button-top">Ångra</button>
+      </div>
+
+      <div id="display-mode-label"><span id="live-mode-dot"></span><span id="display-mode-text"></span></div>
+      <div id="current-point-time-label"></div>
+      <div id="pause-icon"></div>
+      <div id="overlay"></div>
+      <div id="history-overlay"></div>
+      <div id="suggestions"></div>
+      <div id="mood-selector">
+        <div id="mood-sad" class="mood-box">Ledsen</div>
+        <div id="mood-good" class="mood-box">Bra</div>
+        <div id="mood-happy" class="mood-box">Glad</div>
+        <div id="mood-bad" class="mood-box">Dålig</div>
+        <div id="mood-neutral" class="mood-box"><span></span></div>
+      </div>
+
+      <div id="toggle-view-container">
+        <button id="toggle-view-button"><span id="live-indicator"></span><span id="button-text"></span></button>
+      </div>
+
+      <div id="playback-navigation-controls">
+        <button id="prev-point-button">&larr;</button>
+        <button id="next-point-button">&rarr;</button>
+      </div>
+
+      <div id="corner-tl-h" class="corner-line horizontal"></div>
+      <div id="corner-tl-v" class="corner-line vertical"></div>
+      <div id="corner-tr-h" class="corner-line horizontal"></div>
+      <div id="corner-tr-v" class="corner-line vertical"></div>
+      <div id="corner-bl-h" class="corner-line horizontal"></div>
+      <div id="corner-bl-v" class="corner-line vertical"></div>
+      <div id="corner-br-h" class="corner-line horizontal"></div>
+      <div id="corner-br-v" class="corner-line vertical"></div>
+
+      <div id="note-input-container">
+        <input type="text" id="note-input" placeholder="Hur tog du dig hit?">
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+  <script>
+    let clicked = false;
+    let clickX, clickY;
+    let suggestionVisible = false;
+    let moodSelectorVisible = false;
+    let selectedZone = null;
+    let storedData = {};
+    let canvas;
+    let showHistory = false;
+    let lastPointAnimationStartTime = 0;
+    let isFirstDraw = true;
+    let selectedPointIndex = -1;
+    let noteInput;
+    let noteInputContainer;
+    let pauseIcon;
+    let currentObjective = 'Uppgift';
+
+    function preload() {
+      console.log("Preload: Laddar p5.js-resurser...");
+    }
+
+    function setup() {
+      try {
+        console.log("Setup: Försöker skapa canvas...");
+        if (typeof createCanvas !== 'function') {
+          console.error("p5.js är inte laddat korrekt!");
+          return;
+        }
+        canvas = createCanvas(400, 400);
+        canvas.parent('canvas-container');
+        canvas.elt.style.zIndex = '10';
+        canvas.elt.style.display = 'block';
+        console.log("Canvas skapad framgångsrikt, dimensioner:", canvas.width, canvas.height);
+        textAlign(CENTER, CENTER);
+        textSize(12);
+
+        noteInput = document.getElementById('note-input');
+        noteInputContainer = document.getElementById('note-input-container');
+        pauseIcon = document.getElementById('pause-icon');
+
+        canvas.elt.addEventListener('mouseenter', handleMouseEnter);
+        canvas.elt.addEventListener('mouseleave', handleMouseLeave);
+
+        try {
+          let savedData = localStorage.getItem('flowCheckData');
+          if (savedData) {
+            storedData = JSON.parse(savedData);
+            if (!storedData['Uppgift']) storedData['Uppgift'] = [];
+            if (!storedData['Kontakt']) storedData['Kontakt'] = [];
+            if (!storedData['Självkänsla']) storedData['Självkänsla'] = [];
+            if (!storedData['Hälsa & Träning']) storedData['Hälsa & Träning'] = [];
+            if (!storedData['Kreativitet']) storedData['Kreativitet'] = [];
+            if (!storedData['Lärande']) storedData['Lärande'] = [];
+
+            for (let obj in storedData) {
+                if (Array.isArray(storedData[obj])) {
+                    storedData[obj].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                }
+            }
+          } else {
+            storedData['Uppgift'] = [];
+            storedData['Kontakt'] = [];
+            storedData['Självkänsla'] = [];
+            storedData['Hälsa & Träning'] = [];
+            storedData['Kreativitet'] = [];
+            storedData['Lärande'] = [];
+          }
+        } catch (e) {
+          console.warn("Varning: localStorage misslyckades, använder standardvärde", e);
+          storedData['Uppgift'] = [];
+          storedData['Kontakt'] = [];
+          storedData['Självkänsla'] = [];
+          storedData['Hälsa & Träning'] = [];
+          storedData['Kreativitet'] = [];
+          storedData['Lärande'] = [];
+        }
+        console.log("Stored data initialized:", storedData);
+
+        document.getElementById('mood-good').onclick = () => selectMood('good');
+        document.getElementById('mood-sad').onclick = () => selectMood('sad');
+        document.getElementById('mood-happy').onclick = () => selectMood('happy');
+        document.getElementById('mood-bad').onclick = () => selectMood('bad');
+        document.getElementById('mood-neutral').onclick = () => selectMood('neutral');
+
+        document.getElementById('undo-button-top').onclick = undoMoodboard;
+        document.getElementById('new-moodboard').onclick = clearCurrentObjectiveHistory;
+
+        document.getElementById('objective-select').onchange = (e) => {
+            currentObjective = e.target.value;
+            selectedPointIndex = -1;
+            showHistory = false;
+            updatePlaybackNavigationVisibility();
+            hideNoteInput();
+            updateNoteInputPlaceholder();
+            updateViewModeButtonText();
+            updateCornerVisibility();
+            redraw();
+            console.log("Målsättning ändrad till:", currentObjective);
+        };
+
+        let savedObjective = localStorage.getItem('currentObjective');
+        if (savedObjective && (savedObjective === 'Uppgift' || savedObjective === 'Kontakt' || savedObjective === 'Självkänsla' || savedObjective === 'Hälsa & Träning' || savedObjective === 'Kreativitet' || savedObjective === 'Lärande')) {
+            currentObjective = savedObjective;
+            document.getElementById('objective-select').value = currentObjective;
+        } else {
+            localStorage.setItem('currentObjective', currentObjective);
+        }
+
+        document.getElementById('toggle-view-button').onclick = toggleViewMode;
+        document.getElementById('prev-point-button').onclick = goToPreviousPoint;
+        document.getElementById('next-point-button').onclick = goToNextPoint;
+
+        noteInput.addEventListener('input', saveNoteForSelectedPoint);
+
+        updateViewModeButtonText();
+        updatePlaybackNavigationVisibility();
+        updateCornerVisibility();
+        hideNoteInput();
+        updateNoteInputPlaceholder();
+
+        lastPointAnimationStartTime = millis();
+
+        console.log("Setup slutförd");
+      } catch (e) {
+        console.error("Fel i setup:", e);
+      }
+    }
+
+    function draw() {
+      try {
+        if (isFirstDraw) {
+          console.log("Draw: Första ritningen av canvas...");
+          isFirstDraw = false;
+        }
+
+        background(255);
+
+        if (showHistory) {
+          noStroke();
+          fill(0, 0, 0, 100);
+          rect(0, 0, 400, 400);
+        }
+
+        stroke(0);
+        strokeWeight(1);
+        line(50, 350, 350, 350);
+        line(50, 350, 50, 50);
+        line(350, 350, 340, 340);
+        line(350, 350, 340, 360);
+        line(50, 50, 40, 60);
+        line(50, 50, 60, 60);
+
+        noStroke();
+        fill(0);
+        textSize(14);
+        textStyle(BOLD);
+        text("Skicklighetsnivå", 200, 375);
+        push();
+        translate(25, 200);
+        rotate(-PI / 2);
+        text("Utmaningsnivå", 0, 0);
+        pop();
+
+        textSize(12);
+        textStyle(NORMAL);
+        text("Låg", 50, 370);
+        text("Hög", 350, 370);
+        push();
+        translate(30, 350);
+        rotate(-PI / 2);
+        text("Låg", 0, 0);
+        pop();
+        push();
+        translate(30, 50);
+        rotate(-PI / 2);
+        text("Hög", 0, 0);
+        pop();
+
+        textSize(12);
+
+        fill(50, 50, 50, 180);
+        text("Apati", 100 + 1, 300 + 1);
+        text("Tristess", 200 + 1, 300 + 1);
+        text("Avslappning", 300 + 1, 300 + 1);
+
+        text("Oro", 100 + 1, 200 + 1);
+        text("Vardag", 200 + 1, 200 + 1);
+        text("Kontroll", 300 + 1, 200 + 1);
+
+        text("Ångest", 100 + 1, 100 + 1);
+        text("Upphetsning", 200 + 1, 100 + 1);
+        text("Flow", 300 + 1, 100 + 1);
+
+        fill(255);
+        text("Apati", 100, 300);
+        text("Tristess", 200, 300);
+        text("Avslappning", 300, 300);
+
+        text("Oro", 100, 200);
+        text("Vardag", 200, 200);
+        text("Kontroll", 300, 200);
+
+        text("Ångest", 100, 100);
+        text("Upphetsning", 200, 100);
+        text("Flow", 300, 100);
+
+
+        let currentPointTimeLabel = document.getElementById('current-point-time-label');
+        let clicks = storedData[currentObjective];
+
+        if (showHistory && clicks && clicks.length > 0) {
+            let displayIndex = -1;
+
+            if (selectedPointIndex !== -1) {
+                displayIndex = selectedPointIndex;
+            } else if (clicks.length > 0) {
+                displayIndex = clicks.length - 1;
+            }
+
+            if (displayIndex >= 0 && displayIndex < clicks.length) {
+                let currentClick = clicks[displayIndex];
+                let date = new Date(currentClick.timestamp);
+                let hours = date.getHours().toString().padStart(2, '0');
+                let minutes = date.getMinutes().toString().padStart(2, '0');
+                currentPointTimeLabel.innerText = `${hours}:${minutes}`;
+                currentPointTimeLabel.style.display = 'block';
+            } else {
+                currentPointTimeLabel.style.display = 'none';
+            }
+        } else {
+            currentPointTimeLabel.style.display = 'none';
+        }
+
+        if (showHistory && clicks) {
+            for (let i = 0; i < clicks.length; i++) {
+                if (i === clicks.length - 1 && selectedPointIndex !== clicks.length - 1) {
+                    continue;
+                }
+                if (i === selectedPointIndex) {
+                    continue;
+                }
+
+                let click = clicks[i];
+                let color;
+                switch (click.mood) {
+                  case 'good': color = [0, 200, 0]; break;
+                  case 'sad': color = [0, 0, 200]; break;
+                  case 'happy': color = [255, 215, 0]; break;
+                  case 'bad': color = [200, 0, 0]; break;
+                  case 'neutral': color = [200, 200, 200]; break;
+                }
+
+                stroke(255);
+                strokeWeight(1);
+                fill(color);
+                if (click.mood === 'neutral') {
+                    push();
+                    translate(click.x, click.y);
+                    rotate(PI / 4);
+                    rectMode(CENTER);
+                    rect(0, 0, 8, 8);
+                    pop();
+                } else {
+                    ellipse(click.x, click.y, 8, 8);
+                }
+                noStroke();
+            }
+        }
+
+        if (showHistory && selectedPointIndex !== -1 && clicks && clicks.length > selectedPointIndex) {
+            drawSelectedPointAndLines(selectedPointIndex);
+        }
+
+        if (!moodSelectorVisible && !suggestionVisible && clicks && clicks.length > 0) {
+            let latestClick = clicks[clicks.length - 1];
+
+            if ((showHistory && selectedPointIndex !== clicks.length - 1) || !showHistory) {
+                let color;
+                switch (latestClick.mood) {
+                    case 'good': color = [0, 200, 0]; break;
+                    case 'sad': color = [0, 0, 200]; break;
+                    case 'happy': color = [255, 215, 0]; break;
+                    case 'bad': color = [200, 0, 0]; break;
+                    case 'neutral': color = [200, 200, 200]; break;
+                }
+                stroke(255);
+                strokeWeight(2);
+                fill(color);
+
+                let elapsed = (millis() - lastPointAnimationStartTime) / 1000;
+                let scale = 1 + 0.4 * abs(sin(elapsed * PI));
+                if (latestClick.mood === 'neutral') {
+                    push();
+                    translate(latestClick.x, latestClick.y);
+                    rotate(PI / 4);
+                    rectMode(CENTER);
+                    rect(0, 0, 8 * scale, 8 * scale);
+                    pop();
+                } else {
+                    ellipse(latestClick.x, latestClick.y, 8 * scale, 8 * scale);
+                }
+                noStroke();
+            }
+
+            if (!showHistory) {
+                let maxTrailPoints = 10;
+                for (let i = clicks.length - 2; i >= 0 && (clicks.length - 1 - i) <= maxTrailPoints; i--) {
+                    let click = clicks[i];
+                    let color;
+                    switch (click.mood) {
+                        case 'good': color = [0, 200, 0]; break;
+                        case 'sad': color = [0, 0, 200]; break;
+                        case 'happy': color = [255, 215, 0]; break;
+                        case 'bad': color = [200, 0, 0]; break;
+                        case 'neutral': color = [200, 200, 200]; break;
+                    }
+
+                    let alpha = map((clicks.length - 1 - i), 1, maxTrailPoints + 1, 200, 0);
+                    alpha = constrain(alpha, 0, 255);
+
+                    stroke(255, alpha);
+                    strokeWeight(1);
+                    fill(color[0], color[1], color[2], alpha);
+                    if (click.mood === 'neutral') {
+                        push();
+                        translate(click.x, click.y);
+                        rotate(PI / 4);
+                        rectMode(CENTER);
+                        rect(0, 0, 8, 8);
+                        pop();
+                    } else {
+                        ellipse(click.x, click.y, 8, 8);
+                    }
+                    noStroke();
+                }
+            }
+        }
+      } catch (e) {
+        console.error("Error in draw:", e);
+      }
+    }
+
+    function drawSelectedPointAndLines(index) {
+        const clicks = storedData[currentObjective];
+        if (!clicks || index < 0 || index >= clicks.length) return;
+
+        let currentClick = clicks[index];
+        let color;
+        switch (currentClick.mood) {
+            case 'good': color = [0, 200, 0]; break;
+            case 'sad': color = [0, 0, 200]; break;
+            case 'happy': color = [255, 215, 0]; break;
+            case 'bad': color = [200, 0, 0]; break;
+            case 'neutral': color = [200, 200, 200]; break;
+        }
+
+        stroke(255);
+        strokeWeight(2);
+        noFill();
+
+        if (index > 0) {
+            let p0 = (index - 2 >= 0) ? clicks[index - 2] : clicks[index - 1];
+            let p1 = clicks[index - 1];
+            let p2 = clicks[index];
+            let p3 = (index + 1 < clicks.length) ? clicks[index + 1] : clicks[index];
+
+            beginShape();
+            curveVertex(p0.x, p0.y);
+            curveVertex(p1.x, p1.y);
+            curveVertex(p2.x, p2.y);
+            curveVertex(p3.x, p3.y);
+            endShape();
+        }
+
+        if (index < clicks.length - 1) {
+            let p0 = (index - 1 >= 0) ? clicks[index - 1] : clicks[index];
+            let p1 = clicks[index];
+            let p2 = clicks[index + 1];
+            let p3 = (index + 2 < clicks.length) ? clicks[index + 2] : clicks[index + 1];
+
+            beginShape();
+            curveVertex(p0.x, p0.y);
+            curveVertex(p1.x, p1.y);
+            curveVertex(p2.x, p2.y);
+            curveVertex(p3.x, p3.y);
+            endShape();
+        }
+        noStroke();
+
+
+        stroke(255);
+        strokeWeight(3);
+        fill(color);
+        if (currentClick.mood === 'neutral') {
+            push();
+            translate(currentClick.x, currentClick.y);
+            rotate(PI / 4);
+            rectMode(CENTER);
+            rect(0, 0, 12, 12);
+            pop();
+        } else {
+            ellipse(currentClick.x, currentClick.y, 12, 12);
+        }
+        noStroke();
+
+        if (currentClick.note) {
+            fill(255);
+            textSize(12);
+            textStyle(NORMAL);
+            text(currentClick.note, currentClick.x + 20, currentClick.y - 10);
+        }
+    }
+
+
+    function mousePressed() {
+      try {
+        if (suggestionVisible || moodSelectorVisible) return;
+
+        if (mouseX >= 50 && mouseX <= 350 && mouseY >= 50 && mouseY <= 350) {
+          if (showHistory) {
+            const clicks = storedData[currentObjective];
+            if (!clicks || clicks.length <= 0) {
+                selectedPointIndex = -1;
+                updatePlaybackNavigationVisibility();
+                hideNoteInput();
+                redraw();
+                return;
+            }
+
+            let clickedOnPoint = false;
+            for (let i = clicks.length - 1; i >= 0; i--) {
+                let click = clicks[i];
+                if (dist(mouseX, mouseY, click.x, click.y) < 15) {
+                    if (selectedPointIndex === i) {
+                        selectedPointIndex = -1;
+                        hideNoteInput();
+                    } else {
+                        selectedPointIndex = i;
+                        showNoteInputForSelectedPoint(clicks[selectedPointIndex].note || '');
+                    }
+                    clickedOnPoint = true;
+                    break;
+                }
+            }
+
+            if (!clickedOnPoint && selectedPointIndex !== -1) {
+                selectedPointIndex = -1;
+                hideNoteInput();
+            }
+            updatePlaybackNavigationVisibility();
+            redraw();
+          } else {
+            clicked = true;
+            clickX = mouseX;
+            clickY = mouseY;
+            let x = (mouseX - 50) / 300;
+            let y = 1 - (mouseY - 50) / 300;
+            selectedZone = getZone(x, y);
+            hideNoteInput();
+            showMoodSelector();
+          }
+          console.log("Mus klickad vid:", mouseX, mouseY, "Zone:", selectedZone, "ShowHistory:", showHistory, "Selected Point Index:", selectedPointIndex);
+        }
+      } catch (e) {
+        console.error("Fel i mousePressed:", e);
+      }
+    }
+
+    function handleMouseEnter() {
+        if (showHistory) {
+            canvas.elt.style.cursor = 'pointer';
+        }
+    }
+
+    function handleMouseLeave() {
+        canvas.elt.style.cursor = 'default';
+    }
+
+
+    function showMoodSelector() {
+      let overlayDiv = document.getElementById('overlay');
+      let moodSelectorDiv = document.getElementById('mood-selector');
+      let displayModeLabel = document.getElementById('display-mode-label');
+      let currentPointTimeLabel = document.getElementById('current-point-time-label');
+      let toggleViewContainer = document.getElementById('toggle-view-container');
+      let playbackNavControls = document.getElementById('playback-navigation-controls');
+      let cornerLines = document.querySelectorAll('.corner-line');
+      let pauseIcon = document.getElementById('pause-icon');
+
+      let topButtonsContainer = document.getElementById('top-buttons-container');
+      let selectorsContainer = document.getElementById('selectors-container');
+
+      moodSelectorVisible = true;
+      overlayDiv.style.display = 'block';
+      moodSelectorDiv.style.display = 'block';
+      canvas.elt.style.display = 'none';
+      topButtonsContainer.style.display = 'none';
+      selectorsContainer.style.display = 'none';
+      displayModeLabel.style.display = 'none';
+      currentPointTimeLabel.style.display = 'none';
+      toggleViewContainer.style.display = 'none';
+      playbackNavControls.style.display = 'none';
+      cornerLines.forEach(line => line.style.display = 'none');
+      pauseIcon.style.display = 'none';
+      hideNoteInput();
+      overlayDiv.onclick = cancelMoodSelection;
+      console.log("Visar mood selector");
+    }
+
+    function cancelMoodSelection() {
+      let overlayDiv = document.getElementById('overlay');
+      let moodSelectorDiv = document.getElementById('mood-selector');
+      let displayModeLabel = document.getElementById('display-mode-label');
+      let currentPointTimeLabel = document.getElementById('current-point-time-label');
+      let toggleViewContainer = document.getElementById('toggle-view-container');
+      let playbackNavControls = document.getElementById('playback-navigation-controls');
+      let cornerLines = document.querySelectorAll('.corner-line');
+      let pauseIcon = document.getElementById('pause-icon');
+
+      let topButtonsContainer = document.getElementById('top-buttons-container');
+      let selectorsContainer = document.getElementById('selectors-container');
+
+      moodSelectorVisible = false;
+      clicked = false;
+      overlayDiv.style.display = 'none';
+      moodSelectorDiv.style.display = 'none';
+      canvas.elt.style.display = 'block';
+      toggleViewContainer.style.display = 'block';
+      updateViewModeButtonText();
+      displayModeLabel.style.display = 'flex';
+      updatePlaybackNavigationVisibility();
+      updateCornerVisibility();
+      hideNoteInput();
+      overlayDiv.onclick = null;
+      topButtonsContainer.style.display = 'flex';
+      selectorsContainer.style.display = 'flex';
+      console.log("Avbryter mood selection");
+    }
+
+    function selectMood(mood) {
+      let overlayDiv = document.getElementById('overlay');
+      let moodSelectorDiv = document.getElementById('mood-selector');
+      let suggestionsDiv = document.getElementById('suggestions');
+      let displayModeLabel = document.getElementById('display-mode-label');
+      let currentPointTimeLabel = document.getElementById('current-point-time-label');
+      let toggleViewContainer = document.getElementById('toggle-view-container');
+      let playbackNavControls = document.getElementById('playback-navigation-controls');
+      let cornerLines = document.querySelectorAll('.corner-line');
+      let pauseIcon = document.getElementById('pause-icon');
+
+      let topButtonsContainer = document.getElementById('top-buttons-container');
+      let selectorsContainer = document.getElementById('selectors-container');
+
+      if (!storedData[currentObjective]) {
+        storedData[currentObjective] = [];
+      }
+      storedData[currentObjective].push({
+        x: clickX,
+        y: clickY,
+        zone: selectedZone,
+        mood: mood,
+        timestamp: new Date().toISOString(),
+        note: ''
+      });
+      storedData[currentObjective].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      try {
+        localStorage.setItem('flowCheckData', JSON.stringify(storedData));
+      } catch (e) {
+        console.warn("Varning: Kunde inte spara till localStorage", e);
+      }
+
+      lastPointAnimationStartTime = millis();
+
+      moodSelectorVisible = false;
+      moodSelectorDiv.style.display = 'none';
+      overlayDiv.style.display = 'block';
+      suggestionsDiv.style.display = 'block';
+      suggestionsDiv.innerHTML = `<p>${getFlowSuggestion(selectedZone, mood, currentObjective)}</p>`;
+      canvas.elt.style.display = 'none';
+      topButtonsContainer.style.display = 'none';
+      selectorsContainer.style.display = 'none';
+      displayModeLabel.style.display = 'none';
+      currentPointTimeLabel.style.display = 'none';
+      toggleViewContainer.style.display = 'none';
+      playbackNavControls.style.display = 'none';
+      cornerLines.forEach(line => line.style.display = 'none');
+      pauseIcon.style.display = 'none';
+      hideNoteInput();
+
+      function hideSuggestion() {
+        suggestionsDiv.style.display = 'none';
+        overlayDiv.style.display = 'none';
+        suggestionVisible = false;
+        clicked = false;
+        showHistory = false;
+        selectedPointIndex = -1;
+        updateViewModeButtonText();
+        canvas.elt.style.display = 'block';
+        toggleViewContainer.style.display = 'block';
+        displayModeLabel.style.display = 'flex';
+        updatePlaybackNavigationVisibility();
+        updateCornerVisibility();
+        hideNoteInput();
+        overlayDiv.onclick = null;
+        topButtonsContainer.style.display = 'flex';
+        selectorsContainer.style.display = 'flex';
+        console.log("Döljer förslag");
+      }
+
+      suggestionsDiv.onclick = hideSuggestion;
+      overlayDiv.onclick = hideSuggestion;
+      suggestionVisible = true;
+      console.log("Vald känsla:", mood, "Zone:", selectedZone);
+    }
+
+    function undoMoodboard() {
+      if (storedData[currentObjective] && storedData[currentObjective].length > 0) {
+        storedData[currentObjective].pop();
+        selectedPointIndex = -1;
+        lastPointAnimationStartTime = millis();
+        try {
+          localStorage.setItem('flowCheckData', JSON.stringify(storedData));
+        } catch (e) {
+          console.warn("Varning: Kunde inte spara till localStorage", e);
+        }
+        updatePlaybackNavigationVisibility();
+        hideNoteInput();
+        redraw();
+        if (storedData[currentObjective].length === 0) {
+          document.getElementById('current-point-time-label').style.display = 'none';
+        }
+        console.log("Ångra utförd");
+      }
+    }
+
+    function clearCurrentObjectiveHistory() {
+      storedData[currentObjective] = [];
+      selectedPointIndex = -1;
+      try {
+        localStorage.setItem('flowCheckData', JSON.stringify(storedData));
+      } catch (e) {
+        console.warn("Varning: Kunde inte spara till localStorage", e);
+      }
+      updatePlaybackNavigationVisibility();
+      hideNoteInput();
+      redraw();
+      document.getElementById('current-point-time-label').style.display = 'none';
+      console.log(`History cleared for objective: ${currentObjective}`);
+    }
+
+    function toggleViewMode() {
+      showHistory = !showHistory;
+      clicked = false;
+      selectedPointIndex = -1;
+      lastPointAnimationStartTime = millis();
+      if (!showHistory) {
+        document.getElementById('current-point-time-label').style.display = 'none';
+      }
+      updateViewModeButtonText();
+      updatePlaybackNavigationVisibility();
+      updateCornerVisibility();
+      hideNoteInput();
+      redraw();
+      console.log("Visningsläge växlat. showHistory:", showHistory);
+    }
+
+    function updateViewModeButtonText() {
+      const toggleButton = document.getElementById('toggle-view-button');
+      const buttonTextSpan = document.getElementById('button-text');
+      const liveIndicator = document.getElementById('live-indicator');
+      const displayModeLabel = document.getElementById('display-mode-label');
+      const displayModeTextSpan = document.getElementById('display-mode-text');
+      const liveModeDot = document.getElementById('live-mode-dot');
+      const pauseIcon = document.getElementById('pause-icon');
+
+      if (showHistory) {
+        displayModeTextSpan.innerText = 'PLAYBACK';
+        displayModeLabel.style.color = 'white';
+        liveModeDot.style.display = 'none';
+        liveModeDot.classList.remove('blinking');
+        pauseIcon.style.display = 'block';
+      } else {
+        displayModeTextSpan.innerText = 'LIVE';
+        displayModeLabel.style.color = 'gray';
+        liveModeDot.style.display = 'block';
+        liveModeDot.classList.add('blinking');
+        pauseIcon.style.display = 'none';
+      }
+
+      if (showHistory) {
+        buttonTextSpan.innerText = 'Gå till LIVE';
+        liveIndicator.style.display = 'block';
+        toggleButton.classList.add('live-mode-toggle');
+        toggleButton.classList.remove('playback-mode-toggle');
+      } else {
+        buttonTextSpan.innerText = 'Gå till PLAYBACK';
+        liveIndicator.style.display = 'none';
+        toggleButton.classList.remove('live-mode-toggle');
+        toggleButton.classList.add('playback-mode-toggle');
+      }
+    }
+
+    function updatePlaybackNavigationVisibility() {
+      const playbackNavControls = document.getElementById('playback-navigation-controls');
+      const prevButton = document.getElementById('prev-point-button');
+      const nextButton = document.getElementById('next-point-button');
+      const clicks = storedData[currentObjective];
+
+      if (showHistory && selectedPointIndex !== -1 && clicks && clicks.length > 0) {
+        playbackNavControls.style.display = 'flex';
+
+        if (selectedPointIndex === 0) {
+          prevButton.style.visibility = 'hidden';
+        } else {
+          prevButton.style.visibility = 'visible';
+        }
+
+        if (selectedPointIndex === clicks.length - 1) {
+          nextButton.style.visibility = 'hidden';
+        } else {
+          nextButton.style.visibility = 'visible';
+        }
+      } else {
+        playbackNavControls.style.display = 'none';
+        prevButton.style.visibility = 'hidden';
+        nextButton.style.visibility = 'hidden';
+      }
+    }
+
+
+    function goToPreviousPoint() {
+        const clicks = storedData[currentObjective];
+        if (selectedPointIndex > 0) {
+            selectedPointIndex--;
+            showNoteInputForSelectedPoint(clicks[selectedPointIndex].note || '');
+            updatePlaybackNavigationVisibility();
+            redraw();
+        }
+    }
+
+    function goToNextPoint() {
+        const clicks = storedData[currentObjective];
+        if (selectedPointIndex < clicks.length - 1) {
+            selectedPointIndex++;
+            showNoteInputForSelectedPoint(clicks[selectedPointIndex].note || '');
+            updatePlaybackNavigationVisibility();
+            redraw();
+        }
+    }
+
+    function hideNoteInput() {
+        noteInputContainer.style.display = 'none';
+        noteInput.value = '';
+    }
+
+    function showNoteInputForSelectedPoint(note) {
+        if (showHistory && selectedPointIndex !== -1) {
+            noteInput.value = note;
+            noteInputContainer.style.display = 'block';
+            noteInput.focus();
+        } else {
+            hideNoteInput();
+        }
+    }
+
+    function saveNoteForSelectedPoint() {
+        if (showHistory && selectedPointIndex !== -1) {
+            const clicks = storedData[currentObjective];
+            if (clicks && clicks.length > selectedPointIndex) {
+                clicks[selectedPointIndex].note = noteInput.value;
+                try {
+                    localStorage.setItem('flowCheckData', JSON.stringify(storedData));
+                } catch (e) {
+                    console.warn("Varning: Kunde inte spara anteckning till localStorage", e);
+                }
+                redraw();
+            }
+        }
+    }
+
+    function updateNoteInputPlaceholder() {
+        switch (currentObjective) {
+            case 'Uppgift':
+                noteInput.placeholder = "Hur gick det med uppgiften?";
+                break;
+            case 'Kontakt':
+                noteInput.placeholder = "Hur var interaktionen?";
+                break;
+            case 'Självkänsla':
+                noteInput.placeholder = "Vad fick dig att känna så här?";
+                break;
+            case 'Hälsa & Träning':
+                noteInput.placeholder = "Vad var det för typ av träning?";
+                break;
+            case 'Kreativitet':
+                noteInput.placeholder = "Vad skapade du?";
+                break;
+            case 'Lärande':
+                noteInput.placeholder = "Vad lärde du dig?";
+                break;
+            default:
+                noteInput.placeholder = "Anteckning...";
+        }
+    }
+
+    function updateCornerVisibility() {
+        const cornerLines = document.querySelectorAll('.corner-line');
+        if (showHistory) {
+            cornerLines.forEach(line => line.style.display = 'none');
+        } else {
+            cornerLines.forEach(line => line.style.display = 'block');
+        }
+    }
+
+
+    function getZone(x, y) {
+      if (x >= 0 && x <= 1/3 && y >= 0 && y <= 1/3) return 'Ångest';
+      if (x > 1/3 && x <= 2/3 && y >= 0 && y <= 1/3) return 'Upphetsning';
+      if (x > 2/3 && x <= 1 && y >= 0 && y <= 1/3) return 'Flow';
+
+      if (x >= 0 && x <= 1/3 && y > 1/3 && y <= 2/3) return 'Oro';
+      if (x > 1/3 && x <= 2/3 && y > 1/3 && y <= 2/3) return 'Vardag';
+      if (x > 2/3 && x <= 1 && y > 1/3 && y <= 2/3) return 'Kontroll';
+
+      if (x >= 0 && x <= 1/3 && y > 2/3 && y <= 1) return 'Apati';
+      if (x > 1/3 && x <= 2/3 && y > 2/3 && y <= 1) return 'Tristess';
+      if (x > 2/3 && x <= 1 && y > 2/3 && y <= 1) return 'Avslappning';
+
+      return 'Okänd';
+    }
+
+    function getFlowSuggestion(zone, mood, objective) {
+        let suggestions = {};
+
+        if (objective === 'Uppgift') {
+            suggestions = {
+                'Apati': 'Sök efter en ny och mer spännande uppgift, eller en som är mer anpassad efter dina färdigheter. Ändra till ett nytt område.',
+                'Tristess': 'Höj utmaningen i din uppgift, sök efter en ny.',
+                'Avslappning': 'Hitta en svårare uppgift att ta dig an. Kan du göra uppgiften svårare? Höj utmaningen.',
+                'Oro': 'Sök efter en enklare uppgift, eller dela upp den nuvarande i mindre delar. Höj dina färdigheter.',
+                'Vardag': 'Sök efter en enklare uppgift, eller gör den mer rutinbetonad.',
+                'Kontroll': 'Kan du göra uppgiften svårare? Sök en ny utmaning som kräver mer av dig. Höj utmaningen.',
+                'Ångest': 'Sök efter en enklare uppgift. Dela upp uppgiften i mindre delar. Höj dina färdigheter.',
+                'Upphetsning': 'Fokusera på det som är roligt med uppgiften. Kan du höja dina färdigheter?',
+                'Flow': 'Bra jobbat! Fortsätt på samma spår.'
+            };
+        } else if (objective === 'Kontakt') {
+            suggestions = {
+                'Apati': 'Ta kontakt med någon ny eller annan person, eller hitta en aktivitet att göra tillsammans med någon som intresserar dig.',
+                'Tristess': 'Hitta en ny aktivitet att göra tillsammans med personen, eller prata om ett mer engagerande ämne.',
+                'Avslappning': 'Ta kontakt med någon som kan utmana dig mer intellektuellt eller socialt.',
+                'Oro': 'Ta en paus från personen, eller försök att prata om lugnande ämnen. Hitta ett tryggt ställe.',
+                'Vardag': 'Prata med personen om nya saker, eller hitta en ny aktivitet att göra tillsammans.',
+                'Kontroll': 'Våga släppa kontrollen lite, lita på att personen kan hjälpa dig. Utmana dig själv med en svårare konversation.',
+                'Ångest': 'Ta en paus från sociala interaktioner. Försök att göra en lugnande aktivitet. Prata med någon du litar på.',
+                'Upphetsning': 'Försök att kanalisera din energi i en gemensam aktivitet. Fokusera på att ha kul och vara i nuet.',
+                'Flow': 'Bra jobbat! Fortsätt på samma spår.'
+            };
+        } else if (objective === 'Självkänsla') {
+            suggestions = {
+                'Apati': 'Prova en aktivitet där du inte behöver prestera, eller försök att göra något du gillade som barn.',
+                'Tristess': 'Hitta en ny aktivitet där du kan använda dina färdigheter på ett nytt sätt.',
+                'Avslappning': 'Våga utmana dig själv lite mer. Välj en aktivitet som kräver mer av dig.',
+                'Oro': 'Gör något du känner dig trygg med. Ta en paus från prestationer.',
+                'Vardag': 'Fundera på vad du är stolt över i ditt liv. Sätt upp små, nåbara mål som du kan klara av.',
+                'Kontroll': 'Fundera på om du kan släppa taget lite, du måste inte ha full kontroll. Ge dig själv utrymme att misslyckas.',
+                'Ångest': 'Fokusera på andningen, gör en lugnande aktivitet. Kom ihåg att det är okej att misslyckas.',
+                'Upphetsning': 'Hitta en ny utmaning som du kan kanalisera din energi i. Fokusera på att vara i nuet.',
+                'Flow': 'Bra jobbat! Fortsätt på samma spår.'
+            };
+        } else if (objective === 'Hälsa & Träning') {
+            suggestions = {
+                'Apati': 'Prova en ny träningsform som är mindre prestationsfylld. Sätt upp ett enkelt mål, som 10 minuters promenad.',
+                'Tristess': 'Höj intensiteten i din träning, eller prova en ny övning. Hitta en träningskompis.',
+                'Avslappning': 'Öka vikten eller antalet repetitioner. Hitta en svårare utmaning som kräver mer av dig.',
+                'Oro': 'Minska intensiteten. Fokusera på lugna och kontrollerade rörelser, som yoga eller stretch.',
+                'Vardag': 'Fundera på vad du gillar med träning och vad som gör det till en rutin. Kan du lägga till en ny övning?',
+                'Kontroll': 'Släpp fokus på perfektion. Lita på din kropp. Prova en mer lekfull träningsform.',
+                'Ångest': 'Ta en paus från träning. Fokusera på återhämtning och sömn. Prata med en vän eller en expert.',
+                'Upphetsning': 'Kanalisera energin i en ny utmaning eller ett lopp. Sätt upp ett tydligt, kortsiktigt mål.',
+                'Flow': 'Bra jobbat! Fortsätt på samma spår.'
+            };
+        } else if (objective === 'Kreativitet') {
+            suggestions = {
+                'Apati': 'Prova en ny typ av kreativitet som du inte provat förut. Börja med något enkelt, som att rita en enda linje.',
+                'Tristess': 'Hitta ett nytt material eller en ny teknik att utforska. Sätt upp en kort deadline.',
+                'Avslappning': 'Hitta ett nytt och svårare projekt att jobba med. Utmana dig själv att lära dig något nytt.',
+                'Oro': 'Dela upp ditt projekt i mindre, enklare steg. Fokusera på processen, inte resultatet.',
+                'Vardag': 'Experimentera med nya färger eller former. Hitta ett litet projekt du kan göra på en dag.',
+                'Kontroll': 'Våga släppa taget. Låt misstag bli en del av processen. Prova att göra något abstrakt.',
+                'Ångest': 'Ta en paus från ditt projekt. Gör en enkel, monoton aktivitet, som att färglägga. Lyssna på musik.',
+                'Upphetsning': 'Kanalisera energin i ett nytt, spännande projekt. Sätt upp en tydlig vision för vad du vill skapa.',
+                'Flow': 'Bra jobbat! Fortsätt på samma spår.'
+            };
+        } else if (objective === 'Lärande') {
+            suggestions = {
+                'Apati': 'Sök efter ett helt nytt ämne som intresserar dig. Titta på en kort dokumentär eller läs en artikel.',
+                'Tristess': 'Hitta ett nytt sätt att lära dig, som att lyssna på en podcast eller titta på en video. Försök att lära dig något praktiskt.',
+                'Avslappning': 'Hitta en svårare bok att läsa, eller en ny färdighet att lära dig. Sätt upp ett tydligt mål för vad du vill lära dig.',
+                'Oro': 'Dela upp ämnet i mindre, hanterbara delar. Fokusera på att förstå en liten del i taget.',
+                'Vardag': 'Försök att hitta en koppling mellan ditt nya ämne och något du redan kan.',
+                'Kontroll': 'Acceptera att du inte kan lära dig allt. Släpp kraven på att ha full kontroll över ämnet. Fokusera på att ha kul.',
+                'Ångest': 'Ta en paus från studierna. Gör något som ger dig mental återhämtning. Prata med någon om hur du känner.',
+                'Upphetsning': 'Använd din energi för att fördjupa dig i ett specifikt område inom ditt ämne. Sätt upp ett tydligt projekt.',
+                'Flow': 'Bra jobbat! Fortsätt på samma spår.'
+            };
+        }
+
+        if (!suggestions[zone]) {
+          suggestions = {
+            'Apati': 'Du verkar ha lite att göra. Kanske är det dags att hitta en ny utmaning?',
+            'Tristess': 'Sök efter en ny uppgift eller höj svårighetsgraden på din nuvarande.',
+            'Avslappning': 'Njut av stunden! Om du vill, kan du höja utmaningen i din uppgift.',
+            'Oro': 'Försök att förenkla din uppgift eller be om hjälp.',
+            'Vardag': 'Du verkar vara i en bekväm rutin. Kan du hitta ett sätt att höja utmaningen?',
+            'Kontroll': 'Du har full koll! Våga testa något svårare eller nytt.',
+            'Ångest': 'Fokusera på att andas och hitta en enklare uppgift.',
+            'Upphetsning': 'Kanalisera din energi i ett nytt projekt.',
+            'Flow': 'Grattis, du är i flow! Fortsätt med det du gör.'
+          };
+        }
+
+        if (mood === 'bad') {
+            return suggestions[zone] || 'Du verkar ha en dålig känsla. Försök att hitta en enklare uppgift.';
+        } else if (mood === 'sad') {
+            return suggestions[zone] || 'Du verkar ledsen. Försök att hitta något som ger dig glädje.';
+        } else if (mood === 'happy') {
+            return suggestions[zone] || 'Du är glad! Fortsätt med det du gör.';
+        } else if (mood === 'good') {
+            return suggestions[zone] || 'Du är på rätt väg! Fortsätt med det du gör.';
+        } else if (mood === 'neutral') {
+            return suggestions[zone] || 'Du har en neutral känsla. Fundera på vad du känner inför din uppgift.';
+        } else {
+            return suggestions[zone] || 'Ingen specifik rekommendation hittades för denna zon.';
+        }
+    }
+  </script>
+</body>
+</html>
