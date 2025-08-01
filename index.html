@@ -183,26 +183,26 @@
   user-select: none;
 }
 
-    #mood-good {
-      background-color: rgba(0, 200, 0, 0.9);
+ #mood-good {
+      background-color: rgba(60, 179, 113, 0.9);
       bottom: 0;
       right: 0;
     }
 
     #mood-sad {
-      background-color: rgba(0, 0, 200, 0.9);
+      background-color: rgba(100, 149, 237, 0.9);
       top: 0;
       left: 0;
     }
 
     #mood-happy {
-      background-color: rgba(255, 215, 0, 0.9);
+      background-color: rgba(255, 223, 100, 0.9);
       top: 0;
       right: 0;
     }
 
     #mood-bad {
-      background-color: rgba(200, 0, 0, 0.9);
+      background-color: rgba(220, 99, 87, 0.9);
       bottom: 0;
       left: 0;
     }
@@ -338,8 +338,8 @@
     }
 
     #note-input-container {
-      position: absolute;
-      bottom: 10%;
+      position: fixed;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
@@ -420,25 +420,18 @@
       right: 0;
     }
     
-    @media (max-width: 450px) {
-        body {
-            height: 100vh;
-            padding: 20px 0;
-        }
+    .note-text {
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        font-size: 12px;
+        text-align: center;
+        width: 100px;
+    }
 
-        #main-container {
-            width: 95%;
-        }
 
-        #top-buttons-container button {
-          top: -35px;
-          padding: 6px 12px;
-          font-size: 14px;
-        }
-        
-        #toggle-view-container {
-            bottom: -35px;
-        }
+
+
+
     }
   </style>
 </head>
@@ -499,13 +492,12 @@
       <div id="corner-bl-v" class="corner-line vertical"></div>
       <div id="corner-br-h" class="corner-line horizontal"></div>
       <div id="corner-br-v" class="corner-line vertical"></div>
-
-      <div id="note-input-container">
-        <input type="text" id="note-input" placeholder="Hur tog du dig hit?">
-      </div>
     </div>
   </div>
 
+    <div id="note-input-container">
+        <input type="text" id="note-input" placeholder="Hur tog du dig hit?">
+    </div>
 
 
 
@@ -765,10 +757,7 @@
                 if (i === clicks.length - 1 && selectedPointIndex !== clicks.length - 1) {
                     continue;
                 }
-                if (i === selectedPointIndex) {
-                    continue;
-                }
-
+                
                 let click = clicks[i];
                 let color;
                 switch (click.mood) {
@@ -793,9 +782,44 @@
                     ellipse(click.x, click.y, 8, 8);
                 }
                 noStroke();
+
+                if (i === selectedPointIndex) {
+                    stroke(255);
+                    strokeWeight(3);
+                    fill(color);
+                    if (click.mood === 'neutral') {
+                        push();
+                        translate(click.x, click.y);
+                        rotate(PI / 4);
+                        rectMode(CENTER);
+                        rect(0, 0, 12, 12);
+                        pop();
+                    } else {
+                        ellipse(click.x, click.y, 12, 12);
+                    }
+                    noStroke();
+                }
+                
+                if (click.note && showHistory) {
+                    fill(255);
+                    textSize(12);
+                    textStyle(NORMAL);
+                    text(click.note, click.x + 20, click.y - 10);
+                }
+
             }
         }
 
+        if (showHistory && clicks && clicks.length > 1) {
+            for (let i = 0; i < clicks.length - 1; i++) {
+                let p1 = clicks[i];
+                let p2 = clicks[i+1];
+                stroke(255);
+                strokeWeight(1);
+                line(p1.x, p1.y, p2.x, p2.y);
+            }
+        }
+        
         if (showHistory && selectedPointIndex !== -1 && clicks && clicks.length > selectedPointIndex) {
             drawSelectedPointAndLines(selectedPointIndex);
         }
@@ -886,12 +910,15 @@
         stroke(255);
         strokeWeight(2);
         noFill();
+        
+        let p0, p1, p2, p3;
 
+        // Draw line segments leading up to the selected point
         if (index > 0) {
-            let p0 = (index - 2 >= 0) ? clicks[index - 2] : clicks[index - 1];
-            let p1 = clicks[index - 1];
-            let p2 = clicks[index];
-            let p3 = (index + 1 < clicks.length) ? clicks[index + 1] : clicks[index];
+            p0 = (index - 2 >= 0) ? clicks[index - 2] : clicks[index-1];
+            p1 = clicks[index - 1];
+            p2 = clicks[index];
+            p3 = (index + 1 < clicks.length) ? clicks[index + 1] : clicks[index];
 
             beginShape();
             curveVertex(p0.x, p0.y);
@@ -901,11 +928,12 @@
             endShape();
         }
 
+        // Draw line segments from the selected point
         if (index < clicks.length - 1) {
-            let p0 = (index - 1 >= 0) ? clicks[index - 1] : clicks[index];
-            let p1 = clicks[index];
-            let p2 = clicks[index + 1];
-            let p3 = (index + 2 < clicks.length) ? clicks[index + 2] : clicks[index + 1];
+            p0 = (index - 1 >= 0) ? clicks[index - 1] : clicks[index];
+            p1 = clicks[index];
+            p2 = clicks[index + 1];
+            p3 = (index + 2 < clicks.length) ? clicks[index + 2] : clicks[index + 1];
 
             beginShape();
             curveVertex(p0.x, p0.y);
@@ -915,7 +943,6 @@
             endShape();
         }
         noStroke();
-
 
         stroke(255);
         strokeWeight(3);
@@ -1240,7 +1267,7 @@
       const nextButton = document.getElementById('next-point-button');
       const clicks = storedData[currentObjective];
 
-      if (showHistory && selectedPointIndex !== -1 && clicks && clicks.length > 0) {
+      if (showHistory && clicks && clicks.length > 0) {
         playbackNavControls.style.display = 'flex';
 
         if (selectedPointIndex === 0) {
@@ -1382,7 +1409,7 @@
             suggestions = {
                 'Apati': 'Ta kontakt med någon ny eller annan person, eller hitta en aktivitet att göra tillsammans med någon som intresserar dig.',
                 'Tristess': 'Hitta en ny aktivitet att göra tillsammans med personen, eller prata om ett mer engagerande ämne.',
-                'Avslappning': 'Ta kontakt med någon som kan utmana dig mer intellektuellt eller socialt.',
+                'Avslappning': 'Ta kontakt med någon som kan utmanen dig mer intellektuellt eller socialt.',
                 'Oro': 'Ta en paus från personen, eller försök att prata om lugnande ämnen. Hitta ett tryggt ställe.',
                 'Vardag': 'Prata med personen om nya saker, eller hitta en ny aktivitet att göra tillsammans.',
                 'Kontroll': 'Våga släppa kontrollen lite, lita på att personen kan hjälpa dig. Utmana dig själv med en svårare konversation.',
