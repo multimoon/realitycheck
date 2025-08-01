@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlowCheck Startskärm</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <style>
@@ -18,9 +19,10 @@
 
     #main-container {
       background-color: #333;
-      padding: 20px;
-      width: 450px;
-      height: 100vh;
+      padding: 10px;
+      max-width: 450px;
+      width: 100%;
+      height: 100%;
       box-sizing: border-box;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -102,8 +104,8 @@
 
     #canvas-container {
       position: relative;
-      width: 400px;
-      height: 400px;
+      width: 100%;
+      aspect-ratio: 1 / 1;
       z-index: 10;
       border: 1px solid #ccc;
       margin: auto;
@@ -129,73 +131,78 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 400px;
-      height: 400px;
+      width: 100%;
+      height: 100%;
       background-color: rgba(0, 0, 0, 0.4);
       display: none;
       z-index: 2;
       pointer-events: none;
     }
 
-    #suggestions {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 300px;
-      text-align: center;
-      display: none;
-      font-size: 24px;
-      color: white;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-      z-index: 15;
-      cursor: pointer;
-    }
+#suggestions {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  text-align: center;
+  display: none;
+  font-size: 24px;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  z-index: 15;
+  cursor: pointer;
+  user-select: none;
+}
 
     #mood-selector {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 400px;
-      height: 400px;
+      width: 100%;
+      height: 100%;
       display: none;
       z-index: 15;
     }
 
-    .mood-box {
-      width: 200px;
-      height: 200px;
-      position: absolute;
-      text-align: center;
-      line-height: 200px;
-      font-size: 18px;
-      color: white;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-      cursor: pointer;
-      box-sizing: border-box;
-    }
+.mood-box {
+  width: 50%;
+  height: 50%;
+  position: absolute;
+  text-align: center;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  box-sizing: border-box;
+  user-select: none;
+}
 
     #mood-good {
-      background-color: rgba(0, 200, 0, 0.5);
+      background-color: rgba(0, 200, 0, 0.9);
       bottom: 0;
       right: 0;
     }
 
     #mood-sad {
-      background-color: rgba(0, 0, 200, 0.5);
+      background-color: rgba(0, 0, 200, 0.9);
       top: 0;
       left: 0;
     }
 
     #mood-happy {
-      background-color: rgba(255, 215, 0, 0.5);
+      background-color: rgba(255, 215, 0, 0.9);
       top: 0;
       right: 0;
     }
 
     #mood-bad {
-      background-color: rgba(200, 0, 0, 0.5);
+      background-color: rgba(200, 0, 0, 0.9);
       bottom: 0;
       left: 0;
     }
@@ -331,12 +338,13 @@
     }
 
     #note-input-container {
-      position: fixed;
+      position: absolute;
       bottom: 10%;
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
-      width: 300px;
+      width: 80%;
+      max-width: 300px;
       display: none;
       text-align: center;
     }
@@ -411,7 +419,27 @@
     #pause-icon::after {
       right: 0;
     }
+    
+    @media (max-width: 450px) {
+        body {
+            height: 100vh;
+            padding: 20px 0;
+        }
 
+        #main-container {
+            width: 95%;
+        }
+
+        #top-buttons-container button {
+          top: -35px;
+          padding: 6px 12px;
+          font-size: 14px;
+        }
+        
+        #toggle-view-container {
+            bottom: -35px;
+        }
+    }
   </style>
 </head>
 <body>
@@ -498,6 +526,15 @@
     let noteInputContainer;
     let pauseIcon;
     let currentObjective = 'Uppgift';
+    let canvasSize = 400;
+
+    function windowResized() {
+      const container = document.getElementById('canvas-container');
+      const containerSize = Math.min(container.offsetWidth, container.offsetHeight);
+      canvasSize = containerSize;
+      resizeCanvas(canvasSize, canvasSize);
+      redraw();
+    }
 
     function preload() {
       console.log("Preload: Laddar p5.js-resurser...");
@@ -510,7 +547,11 @@
           console.error("p5.js är inte laddat korrekt!");
           return;
         }
-        canvas = createCanvas(400, 400);
+
+        const container = document.getElementById('canvas-container');
+        canvasSize = Math.min(container.offsetWidth, container.offsetHeight);
+
+        canvas = createCanvas(canvasSize, canvasSize);
         canvas.parent('canvas-container');
         canvas.elt.style.zIndex = '10';
         canvas.elt.style.display = 'block';
@@ -617,76 +658,80 @@
           isFirstDraw = false;
         }
 
+        const margin = canvasSize * 0.125;
+        const graphWidth = canvasSize - 2 * margin;
+        const graphHeight = canvasSize - 2 * margin;
+
         background(255);
 
         if (showHistory) {
           noStroke();
           fill(0, 0, 0, 100);
-          rect(0, 0, 400, 400);
+          rect(0, 0, canvasSize, canvasSize);
         }
 
         stroke(0);
         strokeWeight(1);
-        line(50, 350, 350, 350);
-        line(50, 350, 50, 50);
-        line(350, 350, 340, 340);
-        line(350, 350, 340, 360);
-        line(50, 50, 40, 60);
-        line(50, 50, 60, 60);
+        line(margin, canvasSize - margin, canvasSize - margin, canvasSize - margin);
+        line(margin, canvasSize - margin, margin, margin);
+        line(canvasSize - margin, canvasSize - margin, canvasSize - margin - 10, canvasSize - margin - 10);
+        line(canvasSize - margin, canvasSize - margin, canvasSize - margin - 10, canvasSize - margin + 10);
+        line(margin, margin, margin - 10, margin + 10);
+        line(margin, margin, margin + 10, margin + 10);
 
         noStroke();
         fill(0);
-        textSize(14);
+        textSize(canvasSize * 0.035);
         textStyle(BOLD);
-        text("Skicklighetsnivå", 200, 375);
+        text("Skicklighetsnivå", canvasSize / 2, canvasSize - margin + 25);
         push();
-        translate(25, 200);
+        translate(margin - 25, canvasSize / 2);
         rotate(-PI / 2);
         text("Utmaningsnivå", 0, 0);
         pop();
 
-        textSize(12);
+        textSize(canvasSize * 0.03);
         textStyle(NORMAL);
-        text("Låg", 50, 370);
-        text("Hög", 350, 370);
+        text("Låg", margin, canvasSize - margin + 15);
+        text("Hög", canvasSize - margin, canvasSize - margin + 15);
         push();
-        translate(30, 350);
+        translate(margin - 15, canvasSize - margin);
         rotate(-PI / 2);
         text("Låg", 0, 0);
         pop();
         push();
-        translate(30, 50);
+        translate(margin - 15, margin);
         rotate(-PI / 2);
         text("Hög", 0, 0);
         pop();
 
-        textSize(12);
+        textSize(canvasSize * 0.03);
 
         fill(50, 50, 50, 180);
-        text("Apati", 100 + 1, 300 + 1);
-        text("Tristess", 200 + 1, 300 + 1);
-        text("Avslappning", 300 + 1, 300 + 1);
+        text("Apati", margin + graphWidth/6 + 1, margin + graphHeight*5/6 + 1);
+        text("Tristess", margin + graphWidth/2 + 1, margin + graphHeight*5/6 + 1);
+        text("Avslappning", margin + graphWidth*5/6 + 1, margin + graphHeight*5/6 + 1);
 
-        text("Oro", 100 + 1, 200 + 1);
-        text("Vardag", 200 + 1, 200 + 1);
-        text("Kontroll", 300 + 1, 200 + 1);
+        text("Oro", margin + graphWidth/6 + 1, margin + graphHeight/2 + 1);
+        text("Vardag", margin + graphWidth/2 + 1, margin + graphHeight/2 + 1);
+        text("Kontroll", margin + graphWidth*5/6 + 1, margin + graphHeight/2 + 1);
 
-        text("Ångest", 100 + 1, 100 + 1);
-        text("Upphetsning", 200 + 1, 100 + 1);
-        text("Flow", 300 + 1, 100 + 1);
+        text("Ångest", margin + graphWidth/6 + 1, margin + graphHeight/6 + 1);
+        text("Upphetsning", margin + graphWidth/2 + 1, margin + graphHeight/6 + 1);
+        text("Flow", margin + graphWidth*5/6 + 1, margin + graphHeight/6 + 1);
 
         fill(255);
-        text("Apati", 100, 300);
-        text("Tristess", 200, 300);
-        text("Avslappning", 300, 300);
+        text("Apati", margin + graphWidth/6, margin + graphHeight*5/6);
+        text("Tristess", margin + graphWidth/2, margin + graphHeight*5/6);
+        text("Avslappning", margin + graphWidth*5/6, margin + graphHeight*5/6);
 
-        text("Oro", 100, 200);
-        text("Vardag", 200, 200);
-        text("Kontroll", 300, 200);
+        text("Oro", margin + graphWidth/6, margin + graphHeight/2);
+        text("Vardag", margin + graphWidth/2, margin + graphHeight/2);
+        text("Kontroll", margin + graphWidth*5/6, margin + graphHeight/2);
 
-        text("Ångest", 100, 100);
-        text("Upphetsning", 200, 100);
-        text("Flow", 300, 100);
+        text("Ångest", margin + graphWidth/6, margin + graphHeight/6);
+        text("Upphetsning", margin + graphWidth/2, margin + graphHeight/6);
+        text("Flow", margin + graphWidth*5/6, margin + graphHeight/6);
 
 
         let currentPointTimeLabel = document.getElementById('current-point-time-label');
@@ -899,8 +944,12 @@
     function mousePressed() {
       try {
         if (suggestionVisible || moodSelectorVisible) return;
+        
+        const margin = canvasSize * 0.125;
+        const graphWidth = canvasSize - 2 * margin;
+        const graphHeight = canvasSize - 2 * margin;
 
-        if (mouseX >= 50 && mouseX <= 350 && mouseY >= 50 && mouseY <= 350) {
+        if (mouseX >= margin && mouseX <= canvasSize - margin && mouseY >= margin && mouseY <= canvasSize - margin) {
           if (showHistory) {
             const clicks = storedData[currentObjective];
             if (!clicks || clicks.length <= 0) {
@@ -937,8 +986,8 @@
             clicked = true;
             clickX = mouseX;
             clickY = mouseY;
-            let x = (mouseX - 50) / 300;
-            let y = 1 - (mouseY - 50) / 300;
+            let x = (mouseX - margin) / graphWidth;
+            let y = 1 - (mouseY - margin) / graphHeight;
             selectedZone = getZone(x, y);
             hideNoteInput();
             showMoodSelector();
