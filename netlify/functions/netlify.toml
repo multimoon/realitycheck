@@ -1,0 +1,10 @@
+{
+  "name": "flowcheck-app",
+  "version": "1.0.0",
+  "description": "FlowCheck app with serverless function",
+  "main": "netlify/functions/server.js",
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-fetch": "^2.7.0"
+  }
+}
