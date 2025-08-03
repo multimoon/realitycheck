@@ -1,7 +1,9 @@
-[build]
-  publish = "."  # Mappen där din HTML-fil finns
-  functions = "netlify/functions" # Mappen där dina serverlösa funktioner finns
-
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["express", "node-fetch"]
+{
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  },
+  "scripts": {
+    "start": "node netlify/functions/server.js"
+  }
+}
