@@ -3,1864 +3,525 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlowCheck Startskärm</title>
+  <title>FlowCheck</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <style>
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      font-family: 'Inter', sans-serif;
       background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
     }
-
-    #main-container {
-      background-color: #333;
-      padding: 10px;
-      max-width: 450px;
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    #top-row-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    #selectors-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    #objective-select-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    #selectors-container select {
-      padding: 5px 10px;
-      font-size: 14px;
-      height: 30px;
-      cursor: pointer;
-      box-sizing: border-box;
-      line-height: normal;
-      background-color: white;
-    }
-
-    #selectors-container label {
-      font-size: 14px;
-      color: white;
-    }
-
-    #new-moodboard {
-      background-color: #009723;
-      padding: 8px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-
-    #new-moodboard:hover {
-      background-color: #007f1c;
-    }
-
-
-
-
-    #top-buttons-container button {
-      position: absolute;
-      top: -45px;
-      padding: 8px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    #undo-button-top {
-      background-color: #6c757d;
-
-    }
-
-    #undo-button-top:hover {
-      background-color: #5a6268;
-    }
-
-    #canvas-container {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      z-index: 10;
-      border: 1px solid #ccc;
-      margin: auto;
-    }
-
-    canvas {
-      display: block;
-    }
-
-    #overlay {
+    .modal-background {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.6);
+      z-index: 20;
       display: none;
-      z-index: 5;
-      cursor: pointer;
-    }
-
-    #history-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
-      display: none;
-      z-index: 2;
-      pointer-events: none;
-    }
-
-#suggestions {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  text-align: center;
-  display: none;
-  font-size: 24px;
-  color: white;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-  z-index: 15;
-  cursor: pointer;
-  user-select: none;
-}
-
-    #mood-selector {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      display: none;
-      z-index: 15;
-    }
-
-.mood-box {
-  width: 50%;
-  height: 50%;
-  position: absolute;
-  text-align: center;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  cursor: pointer;
-  box-sizing: border-box;
-  user-select: none;
-}
-
- #mood-good {
-      background-color: rgba(60, 179, 113, 0.9);
-      bottom: 0;
-      right: 0;
-    }
-
-    #mood-sad {
-      background-color: rgba(100, 149, 237, 0.9);
-      top: 0;
-      left: 0;
-    }
-
-    #mood-happy {
-      background-color: rgba(255, 223, 100, 0.9);
-      top: 0;
-      right: 0;
-    }
-
-    #mood-bad {
-      background-color: rgba(220, 99, 87, 0.9);
-      bottom: 0;
-      left: 0;
-    }
-
-    #mood-neutral {
-      background-color: #ffffff;
-      color: gray;
-      width: 80px;
-      height: 80px;
-      position: absolute;
-      top: 50%;
-      text-shadow: none;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(45deg);
-      box-sizing: border-box;
-      display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
     }
-
-    #mood-neutral span {
-      transform: rotate(-45deg);
-      display: block;
-      font-size: 18px;
-      color: rgb(137, 137, 137);
-      white-space: nowrap;
-    }
-
-    #toggle-view-container {
-      position: absolute;
-      bottom: -47px;
-      left: 0;
-      z-index: 20;
-    }
-
-    #toggle-view-button {
-      padding: 8px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: transparent;
-      border: 1px solid white;
-      border-radius: 5px;
-      color: white;
-      min-width: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none;
-    }
-
-    #toggle-view-button.live-mode-toggle {
-      border: 1px solid red;
-      color: red;
-    }
-
-    #toggle-view-button.playback-mode-toggle {
-      background-color: transparent;
-      color: #ccc;
-      border-color: grey;
-    }
-
-    #live-indicator {
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      border-radius: 50%;
-      margin-right: 8px;
+    #note-modal, #suggestion-modal, #ai-response-modal {
       display: none;
     }
-
-    #display-mode-label {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      z-index: 20;
-      display: flex;
-      align-items: center;
+    .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border-left-color: #009723;
+        animation: spin 1s ease infinite;
+        display: none;
+        margin: auto;
     }
-
-    #live-mode-dot {
-      width: 10px;
-      height: 10px;
-      background-color: rgb(221, 221, 221);
-      border-radius: 50%;
-      margin-right: 5px;
-      display: none;
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
-
     @keyframes pulse {
-      0% { background-color: rgb(221, 221, 221); }
-      50% { background-color: rgb(255, 255, 255); }
-      100% { background-color: rgb(221, 221, 221); }
+        0% { transform: scale(0.8); opacity: 0.8; }
+        50% { transform: scale(1.2); opacity: 0.5; }
+        100% { transform: scale(0.8); opacity: 0.8; }
     }
-
-    #live-mode-dot.blinking {
-      animation: pulse 1.5s infinite ease-in-out;
-    }
-
-    #current-point-time-label {
-      position: absolute;
-      top: 30px;
-      right: 10px;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-      z-index: 20;
-      text-align: right;
-      display: none;
-    }
-
-    #playback-navigation-controls {
-      position: absolute;
-      bottom: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      display: flex;
-      gap: 10px;
-    }
-
-    #playback-navigation-controls button {
-      padding: 0 10px;
-      font-size: 24px;
-      cursor: pointer;
-      background-color: transparent;
-      border: none;
-      color: white;
-      box-shadow: none;
-    }
-
-    #note-input-container {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      width: 80%;
-      max-width: 300px;
-      display: none;
-      text-align: center;
-    }
-
-    #note-input {
-      width: 100%;
-      border: none;
-      background: transparent;
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 24px;
-      padding: 5px 0;
-      text-align: center;
-      outline: none;
-      border-bottom: 2px dashed white;
-    }
-
-    #note-input::placeholder {
-      color: rgba(200, 200, 200, 0.7);
-    }
-
-    .corner-line {
-      position: absolute;
-      background-color: white;
-      z-index: 15;
-    }
-
-    .corner-line.horizontal {
-      height: 3px;
-      width: 50px;
-    }
-
-    .corner-line.vertical {
-      width: 3px;
-      height: 50px;
-    }
-
-    #corner-tl-h { top: -7px; left: -7px; }
-    #corner-tl-v { top: -7px; left: -7px; }
-    #corner-tr-h { top: -7px; right: -7px; }
-    #corner-tr-v { top: -7px; right: -7px; }
-    #corner-bl-h { bottom: -7px; left: -7px; }
-    #corner-bl-v { bottom: -7px; left: -7px; }
-    #corner-br-h { bottom: -7px; right: -7px; }
-    #corner-br-v { bottom: -7px; right: -7px; }
-
-    /* Styles for the pause icon */
-    #pause-icon {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 20px;
-      height: 20px;
-      display: none;
-      z-index: 20;
-    }
-
-    #pause-icon::before,
-    #pause-icon::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      width: 8px;
-      height: 100%;
-      background-color: white;
-    }
-
-    #pause-icon::before {
-      left: 0;
-    }
-
-    #pause-icon::after {
-      right: 0;
-    }
-    
-    .note-text {
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        font-size: 12px;
-        text-align: center;
-        width: 100px;
-    }
-
-
-
-
-
+    .pulsing-dot {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+        pointer-events: none;
+        z-index: 10;
+        transform: translate(-50%, -50%);
     }
   </style>
 </head>
-<body>
-  <div id="main-container">
-    <div id="top-row-container">
-      <button id="new-moodboard">Ny</button>
-      <div id="selectors-container">
-        <div id="objective-select-wrapper">
-          <label for="objective-select">Målsättning:</label>
-          <select id="objective-select">
-            <option value="Uppgift">Uppgift</option>
-            <option value="Kontakt">Kontakt</option>
-            <option value="Självkänsla">Självkänsla</option>
-            <option value="Hälsa & Träning">Hälsa & Träning</option>
-            <option value="Kreativitet">Kreativitet</option>
-            <option value="Lärande">Lärande</option>
-          </select>
+<body class="flex flex-col items-center p-4 bg-gray-100 text-gray-800 min-h-screen">
+  <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-8">
+
+    <!-- Top Controls: Undo and Reset buttons -->
+    <div class="flex justify-center items-center space-x-4 p-2 flex-shrink-0">
+      <button id="undo-button" class="bg-gray-600 text-white p-3 rounded-lg shadow-md hover:bg-gray-500 transition-colors">
+        Ångra senaste
+      </button>
+      <button id="reset-button" class="bg-red-500 text-white p-3 rounded-lg shadow-md hover:bg-red-400 transition-colors">
+        Nollställ allt
+      </button>
+    </div>
+
+    <!-- Canvas and Labels Container -->
+    <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
+      <div id="canvas-container" class="relative w-full h-full">
+        <div id="click-marker" class="pulsing-dot hidden"></div>
+        <!-- P5.js canvas will be injected here -->
+      </div>
+      
+      <!-- Axis and Corner Labels -->
+      <div class="absolute top-1/2 -left-10 transform -translate-y-1/2 -rotate-90 text-white text-md font-bold text-center w-32">Utmaningsnivå</div>
+      <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-md font-bold text-center w-32">Skicklighetsnivå</div>
+
+      <div class="absolute top-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Angest</div>
+      <div class="absolute top-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Flow</div>
+      <div class="absolute bottom-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Apati</div>
+      <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Kontroll</div>
+    </div>
+
+    <!-- AI Section -->
+    <div class="bg-gray-700 rounded-lg p-4 flex flex-col space-y-3 flex-shrink-0">
+        <h3 class="text-white text-lg font-bold">AI-analys</h3>
+        <textarea id="ai-question-input" rows="2" placeholder="Ställ en fråga om dina datapunkter (t.ex. 'Vad kan jag göra när jag känner mig stressad?') eller klicka på 'Analysera data' för en generell analys." class="w-full p-2 bg-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        <div class="flex justify-between space-x-2">
+            <button id="analyze-data-button" class="bg-blue-500 text-white font-semibold p-2 rounded-md hover:bg-blue-600 transition-colors flex-1">Analysera data</button>
+            <button id="ask-ai-button" class="bg-green-500 text-white font-semibold p-2 rounded-md hover:bg-green-600 transition-colors flex-1">Fråga AI</button>
         </div>
+    </div>
+
+    <!-- Data Points List -->
+    <div id="data-points-list-container" class="bg-gray-700 rounded-lg p-4 overflow-y-auto min-h-[100px] flex-1">
+      <h3 class="text-white text-lg font-bold mb-2">Dina datapunkter</h3>
+      <div id="points-list" class="space-y-2">
+        <!-- Dynamically added data points will go here -->
       </div>
     </div>
 
+  </div>
 
-
-    <div id="canvas-container">
-      <div id="top-buttons-container">
-          <button id="undo-button-top">Ångra</button>
+  <!-- Modal för att visa zon och välja humör -->
+  <div id="suggestion-modal" class="modal-background">
+    <div class="bg-white rounded-lg p-6 shadow-2xl text-center space-y-4 w-11/12 max-w-sm">
+      <h3 class="text-xl font-bold text-gray-900" id="suggestion-text"></h3>
+      <p class="text-gray-600">Hur känner du dig?</p>
+      <div class="flex flex-col space-y-2">
+        <button id="mood-good" class="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 font-semibold">Bra</button>
+        <button id="mood-neutral" class="bg-gray-400 text-white p-3 rounded-lg hover:bg-gray-500 font-semibold">Neutral</button>
+        <button id="mood-bad" class="bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 font-semibold">Dålig</button>
       </div>
-
-      <div id="display-mode-label"><span id="live-mode-dot"></span><span id="display-mode-text"></span></div>
-      <div id="current-point-time-label"></div>
-      <div id="pause-icon"></div>
-      <div id="overlay"></div>
-      <div id="history-overlay"></div>
-      <div id="suggestions"></div>
-      <div id="mood-selector">
-        <div id="mood-sad" class="mood-box">Ledsen</div>
-        <div id="mood-good" class="mood-box">Bra</div>
-        <div id="mood-happy" class="mood-box">Glad</div>
-        <div id="mood-bad" class="mood-box">Dålig</div>
-        <div id="mood-neutral" class="mood-box"><span></span></div>
-      </div>
-
-      <div id="toggle-view-container">
-        <button id="toggle-view-button"><span id="live-indicator"></span><span id="button-text"></span></button>
-      </div>
-
-      <div id="playback-navigation-controls">
-        <button id="prev-point-button">&larr;</button>
-        <button id="next-point-button">&rarr;</button>
-      </div>
-
-      <div id="corner-tl-h" class="corner-line horizontal"></div>
-      <div id="corner-tl-v" class="corner-line vertical"></div>
-      <div id="corner-tr-h" class="corner-line horizontal"></div>
-      <div id="corner-tr-v" class="corner-line vertical"></div>
-      <div id="corner-bl-h" class="corner-line horizontal"></div>
-      <div id="corner-bl-v" class="corner-line vertical"></div>
-      <div id="corner-br-h" class="corner-line horizontal"></div>
-      <div id="corner-br-v" class="corner-line vertical"></div>
     </div>
   </div>
 
-    <div id="note-input-container">
-        <input type="text" id="note-input" placeholder="Hur tog du dig hit?">
+  <!-- Modal för att lägga till anteckning -->
+  <div id="note-modal" class="modal-background">
+    <div class="bg-white rounded-lg p-6 shadow-2xl text-center space-y-4 w-11/12 max-w-sm">
+      <h3 class="text-xl font-bold text-gray-900">Lägg till en anteckning</h3>
+      <input type="text" id="note-input" placeholder="Vad hände? (valfritt)" class="w-full p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="flex justify-center space-x-4">
+        <button id="save-note-button" class="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 font-semibold flex-1">Spara</button>
+        <button id="skip-note-button" class="bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 font-semibold flex-1">Hoppa över</button>
+      </div>
     </div>
-
-
-
+  </div>
+  
+  <!-- Modal för AI-svar -->
+  <div id="ai-response-modal" class="modal-background">
+      <div class="bg-gray-900 p-6 rounded-lg shadow-2xl w-11/12 max-w-md text-white">
+        <h3 class="text-2xl font-bold mb-4" id="ai-response-title"></h3>
+        <div id="ai-response-text" class="text-gray-300 mb-4 overflow-y-auto max-h-64"></div>
+        <div id="ai-loading-spinner" class="spinner"></div>
+        <button id="close-ai-response-button" class="mt-4 bg-gray-600 text-white p-3 rounded-lg w-full hover:bg-gray-500 transition-colors">Stäng</button>
+      </div>
+  </div>
 
   <script>
-    let clicked = false;
-    let clickX, clickY;
-    let suggestionVisible = false;
-    let moodSelectorVisible = false;
-    let selectedZone = null;
-    let storedData = {};
-    let canvas;
-    let showHistory = false;
-    let lastPointAnimationStartTime = 0;
-    let isFirstDraw = true;
-    let selectedPointIndex = -1;
-    let noteInput;
-    let noteInputContainer;
-    let pauseIcon;
-    let currentObjective = 'Uppgift';
-    let canvasSize = 400;
+    // Globala variabler
+    let dataPoints = [];
+    let p5SketchInstance = null;
+    let tempPointData = null;
+    let clickedPosition = null;
+    let isModalOpen = false; // Ny flagga för att spåra modal-tillståndet
 
-    function windowResized() {
-      const container = document.getElementById('canvas-container');
-      const containerSize = Math.min(container.offsetWidth, container.offsetHeight);
-      canvasSize = containerSize;
-      resizeCanvas(canvasSize, canvasSize);
-      redraw();
-    }
+    // UI-element
+    const pointsList = document.getElementById('points-list');
+    const undoButton = document.getElementById('undo-button');
+    const resetButton = document.getElementById('reset-button');
+    const suggestionModal = document.getElementById('suggestion-modal');
+    const noteModal = document.getElementById('note-modal');
+    const noteInput = document.getElementById('note-input');
+    const clickMarker = document.getElementById('click-marker');
+    const aiResponseModal = document.getElementById('ai-response-modal');
+    const aiResponseTitle = document.getElementById('ai-response-title');
+    const aiResponseText = document.getElementById('ai-response-text');
+    const aiLoadingSpinner = document.getElementById('ai-loading-spinner');
+    const aiQuestionInput = document.getElementById('ai-question-input');
 
-    function preload() {
-      console.log("Preload: Laddar p5.js-resurser...");
-    }
+    // --- P5.js SKETCH ---
+    const s = (p) => {
+      let canvasWidth, canvasHeight;
 
-    function setup() {
-      try {
-        console.log("Setup: Försöker skapa canvas...");
-        if (typeof createCanvas !== 'function') {
-          console.error("p5.js är inte laddat korrekt!");
-          return;
+      // Hämta zonen baserat på koordinater
+      function getZoneFromCoordinates(x, y) {
+        // Kartlägger koordinater till zoner på 3x3-matrisen
+        const col = Math.floor(p.map(x, 0, p.width, 0, 3));
+        const row = Math.floor(p.map(y, 0, p.height, 0, 3));
+        
+        const zones = [
+          ['Angest', 'Upphetsning', 'Flow'],
+          ['Oro', 'Vardag', 'Kontroll'],
+          ['Apati', 'Tristess', 'Avslappning']
+        ];
+        
+        return zones[row][col];
+      }
+
+      // Hantera klick på canvas
+      p.mouseClicked = () => {
+        // Förhindra klick om en modal är öppen
+        if (isModalOpen) {
+            return;
         }
 
-        const container = document.getElementById('canvas-container');
-        canvasSize = Math.min(container.offsetWidth, container.offsetHeight);
-
-        canvas = createCanvas(canvasSize, canvasSize);
-        canvas.parent('canvas-container');
-        canvas.elt.style.zIndex = '10';
-        canvas.elt.style.display = 'block';
-        console.log("Canvas skapad framgångsrikt, dimensioner:", canvas.width, canvas.height);
-        textAlign(CENTER, CENTER);
-        textSize(12);
-
-        noteInput = document.getElementById('note-input');
-        noteInputContainer = document.getElementById('note-input-container');
-        pauseIcon = document.getElementById('pause-icon');
-
-        canvas.elt.addEventListener('mouseenter', handleMouseEnter);
-        canvas.elt.addEventListener('mouseleave', handleMouseLeave);
-
-        try {
-          let savedData = localStorage.getItem('flowCheckData');
-          if (savedData) {
-            storedData = JSON.parse(savedData);
-            if (!storedData['Uppgift']) storedData['Uppgift'] = [];
-            if (!storedData['Kontakt']) storedData['Kontakt'] = [];
-            if (!storedData['Självkänsla']) storedData['Självkänsla'] = [];
-            if (!storedData['Hälsa & Träning']) storedData['Hälsa & Träning'] = [];
-            if (!storedData['Kreativitet']) storedData['Kreativitet'] = [];
-            if (!storedData['Lärande']) storedData['Lärande'] = [];
-
-            for (let obj in storedData) {
-                if (Array.isArray(storedData[obj])) {
-                    storedData[obj].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                }
-            }
-          } else {
-            storedData['Uppgift'] = [];
-            storedData['Kontakt'] = [];
-            storedData['Självkänsla'] = [];
-            storedData['Hälsa & Träning'] = [];
-            storedData['Kreativitet'] = [];
-            storedData['Lärande'] = [];
-          }
-        } catch (e) {
-          console.warn("Varning: localStorage misslyckades, använder standardvärde", e);
-          storedData['Uppgift'] = [];
-          storedData['Kontakt'] = [];
-          storedData['Självkänsla'] = [];
-          storedData['Hälsa & Träning'] = [];
-          storedData['Kreativitet'] = [];
-          storedData['Lärande'] = [];
+        if (p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
+          tempPointData = {
+            x: p.mouseX,
+            y: p.mouseY,
+            zone: getZoneFromCoordinates(p.mouseX, p.mouseY)
+          };
+          clickedPosition = {x: p.mouseX, y: p.mouseY};
+          p.redraw();
+          showSuggestionModal(tempPointData.zone);
         }
-        console.log("Stored data initialized:", storedData);
+      };
+      
+      // Anpassa canvasstorleken vid ändring av fönster
+      p.windowResized = () => {
+        const containerElement = document.getElementById('canvas-container');
+        p.resizeCanvas(containerElement.offsetWidth, containerElement.offsetHeight);
+        p.redraw();
+      };
 
-        document.getElementById('mood-good').onclick = () => selectMood('good');
-        document.getElementById('mood-sad').onclick = () => selectMood('sad');
-        document.getElementById('mood-happy').onclick = () => selectMood('happy');
-        document.getElementById('mood-bad').onclick = () => selectMood('bad');
-        document.getElementById('mood-neutral').onclick = () => selectMood('neutral');
+      p.setup = () => {
+        const containerElement = document.getElementById('canvas-container');
+        canvasWidth = containerElement.offsetWidth;
+        canvasHeight = containerElement.offsetHeight;
+        p.createCanvas(canvasWidth, canvasHeight).parent('canvas-container');
+        p.background(55, 65, 81); // mörkgrå bakgrund
+        p.noLoop(); // Rita bara om när det behövs
+      };
 
-        document.getElementById('undo-button-top').onclick = undoMoodboard;
-        document.getElementById('new-moodboard').onclick = clearCurrentObjectiveHistory;
-
-        document.getElementById('objective-select').onchange = (e) => {
-            currentObjective = e.target.value;
-            selectedPointIndex = -1;
-            showHistory = false;
-            updatePlaybackNavigationVisibility();
-            hideNoteInput();
-            updateNoteInputPlaceholder();
-            updateViewModeButtonText();
-            updateCornerVisibility();
-            redraw();
-            console.log("Målsättning ändrad till:", currentObjective);
-        };
-
-        let savedObjective = localStorage.getItem('currentObjective');
-        if (savedObjective && (savedObjective === 'Uppgift' || savedObjective === 'Kontakt' || savedObjective === 'Självkänsla' || savedObjective === 'Hälsa & Träning' || savedObjective === 'Kreativitet' || savedObjective === 'Lärande')) {
-            currentObjective = savedObjective;
-            document.getElementById('objective-select').value = currentObjective;
+      p.draw = () => {
+        p.background(55, 65, 81); // Rensa canvas
+        drawGrid(p);
+        
+        // Rita alla befintliga datapunkter
+        for (let point of dataPoints) {
+          drawPoint(p, point);
+        }
+        
+        // Uppdatera markörens position
+        if (clickedPosition) {
+            clickMarker.style.left = `${clickedPosition.x}px`;
+            clickMarker.style.top = `${clickedPosition.y}px`;
+            clickMarker.classList.remove('hidden');
         } else {
-            localStorage.setItem('currentObjective', currentObjective);
+            clickMarker.classList.add('hidden');
         }
+      };
+    };
 
-        document.getElementById('toggle-view-button').onclick = toggleViewMode;
-        document.getElementById('prev-point-button').onclick = goToPreviousPoint;
-        document.getElementById('next-point-button').onclick = goToNextPoint;
+    // --- DRAWING FUNCTIONS ---
+    function drawGrid(p) {
+      p.stroke(75, 85, 99); // Ljusare grå för rutnätet
+      p.strokeWeight(1);
 
-        noteInput.addEventListener('input', saveNoteForSelectedPoint);
-
-        updateViewModeButtonText();
-        updatePlaybackNavigationVisibility();
-        updateCornerVisibility();
-        hideNoteInput();
-        updateNoteInputPlaceholder();
-
-        lastPointAnimationStartTime = millis();
-
-        console.log("Setup slutförd");
-      } catch (e) {
-        console.error("Fel i setup:", e);
+      // Rita rutnät
+      for (let i = 1; i < 3; i++) {
+        p.line(p.width / 3 * i, 0, p.width / 3 * i, p.height);
+        p.line(0, p.height / 3 * i, p.width, p.height / 3 * i);
+      }
+    }
+    
+    function drawPoint(p, point) {
+      let pointColor;
+      switch (point.mood) {
+        case 'good': pointColor = p.color(16, 185, 129); break; // Tailwind green-500
+        case 'bad': pointColor = p.color(239, 68, 68); break; // Tailwind red-500
+        case 'neutral': pointColor = p.color(156, 163, 175); break; // Tailwind gray-400
+        default: pointColor = p.color(255);
+      }
+      p.fill(pointColor);
+      p.noStroke();
+      p.ellipse(point.x, point.y, 10);
+      
+      // Rita anteckningstext om den finns
+      if (point.note) {
+        p.fill(255);
+        p.textSize(10);
+        p.textAlign(p.CENTER, p.BOTTOM);
+        p.text(point.note, point.x, point.y - 12);
       }
     }
 
-    function draw() {
-      try {
-        if (isFirstDraw) {
-          console.log("Draw: Första ritningen av canvas...");
-          isFirstDraw = false;
+    // --- UI LOGIC ---
+    function showSuggestionModal(zone) {
+      isModalOpen = true; // Sätt flaggan
+      document.getElementById('suggestion-text').textContent = `Du är i zonen för "${zone}".`;
+      suggestionModal.style.display = 'flex';
+    }
+    
+    function addPoint(mood) {
+      // Funktion som lägger till en punkt och går vidare till nästa modal
+      if (!tempPointData) return;
+      
+      tempPointData.mood = mood;
+      tempPointData.timestamp = Date.now();
+      
+      suggestionModal.style.display = 'none'; // Dölj humör-modalen
+      noteModal.style.display = 'flex'; // Visa antecknings-modalen
+      noteInput.focus();
+    }
+
+    // Funktion för att slutföra processen och återgå till grafen
+    function finalizePoint(note = '') {
+      if (!tempPointData) return;
+
+      tempPointData.note = note.trim();
+      dataPoints.push(tempPointData);
+      updateDataPointsList();
+      
+      // Återställ tillfällig data och indata
+      tempPointData = null;
+      noteInput.value = '';
+      
+      // Dölj noten-modalen och återställ flaggor
+      noteModal.style.display = 'none';
+      clickedPosition = null;
+      isModalOpen = false;
+      p5SketchInstance.redraw();
+    }
+    
+    // Stäng AI-svarsmodalen
+    function closeAIResponseModal() {
+        aiResponseModal.style.display = 'none';
+        isModalOpen = false;
+    }
+
+
+    function updateDataPointsList() {
+      pointsList.innerHTML = '';
+      dataPoints.forEach((point, index) => {
+        const pointElement = document.createElement('div');
+        pointElement.className = 'flex justify-between items-center bg-gray-600 p-2 rounded-md';
+        
+        const date = new Date(point.timestamp);
+        const timeString = date.toLocaleTimeString();
+        
+        const info = document.createElement('div');
+        info.className = 'text-sm text-gray-200';
+        info.textContent = `${timeString} - ${point.zone} (${point.mood})`;
+        pointElement.appendChild(info);
+        
+        if (point.note) {
+            const noteText = document.createElement('span');
+            noteText.className = 'text-sm italic text-gray-400 truncate ml-2';
+            noteText.textContent = `"${point.note}"`;
+            pointElement.appendChild(noteText);
+        }
+        
+        pointsList.appendChild(pointElement);
+      });
+      p5SketchInstance.redraw(); // Tvinga en ommålning av p5.js-skissen
+    }
+
+    function undoLastPoint() {
+      if (dataPoints.length > 0) {
+        dataPoints.pop();
+        updateDataPointsList();
+      }
+    }
+
+    function resetApp() {
+      dataPoints = [];
+      updateDataPointsList();
+      p5SketchInstance.redraw();
+      suggestionModal.style.display = 'none';
+      noteModal.style.display = 'none';
+      aiResponseModal.style.display = 'none';
+      isModalOpen = false;
+      clickedPosition = null;
+    }
+
+    // AI-relaterade funktioner
+    async function analyzeData() {
+        if (isModalOpen) return;
+        
+        if (dataPoints.length === 0) {
+            isModalOpen = true;
+            showAIResponse("Analys av data", "Du har inga datapunkter att analysera än. Klicka på grafen för att lägga till din första punkt.");
+            return;
         }
 
-        const margin = canvasSize * 0.125;
-        const graphWidth = canvasSize - 2 * margin;
-        const graphHeight = canvasSize - 2 * margin;
+        isModalOpen = true;
+        aiResponseTitle.textContent = "Analys av dina datapunkter";
+        aiResponseText.innerHTML = "";
+        aiLoadingSpinner.style.display = 'block';
+        aiResponseModal.style.display = 'flex';
 
-        background(255);
+        const prompt = `Analysera följande datapunkter från en flow-matris. Varje punkt representerar en upplevelse baserat på skicklighet (x-koordinat) och utmaning (y-koordinat), samt humör och en valfri anteckning. Ge en kort sammanfattning av mönster du ser (max 3 meningar), och ge sedan ett konkret råd om hur man kan förbättra sin 'flow'-upplevelse. Returnera detta som ett JSON-objekt med fälten 'summary' och 'advice'. Datapunkter: ${JSON.stringify(dataPoints)}.`;
+        
+        const responseSchema = {
+            type: "OBJECT",
+            properties: {
+                summary: { type: "STRING" },
+                advice: { type: "STRING" }
+            },
+            propertyOrdering: ["summary", "advice"]
+        };
 
-        if (showHistory) {
-          noStroke();
-          fill(0, 0, 0, 100);
-          rect(0, 0, canvasSize, canvasSize);
+        try {
+            const result = await callGeminiAPI(prompt, responseSchema);
+            const parsedResult = JSON.parse(result);
+            
+            aiResponseText.innerHTML = `
+                <h4 class="text-xl font-bold mb-2 text-gray-100">Sammanfattning</h4>
+                <p class="mb-4">${parsedResult.summary}</p>
+                <h4 class="text-xl font-bold mb-2 text-gray-100">Konkret råd</h4>
+                <p>${parsedResult.advice}</p>
+            `;
+        } catch (error) {
+            aiResponseText.textContent = "Ett fel inträffade. Vänligen försök igen senare. Det kan bero på att AI:n inte kunde generera ett strukturerat svar.";
+            console.error("AI analysis failed:", error);
+        } finally {
+            aiLoadingSpinner.style.display = 'none';
+        }
+    }
+
+    async function askAI() {
+        if (isModalOpen) return;
+        
+        const question = aiQuestionInput.value.trim();
+        if (question === "") {
+            isModalOpen = true;
+            showAIResponse("Fråga AI", "Vänligen skriv en fråga först!");
+            return;
         }
 
-        stroke(0);
-        strokeWeight(1);
-        line(margin, canvasSize - margin, canvasSize - margin, canvasSize - margin);
-        line(margin, canvasSize - margin, margin, margin);
-        line(canvasSize - margin, canvasSize - margin, canvasSize - margin - 10, canvasSize - margin - 10);
-        line(canvasSize - margin, canvasSize - margin, canvasSize - margin - 10, canvasSize - margin + 10);
-        line(margin, margin, margin - 10, margin + 10);
-        line(margin, margin, margin + 10, margin + 10);
-
-        noStroke();
-        fill(0);
-        textSize(canvasSize * 0.035);
-        textStyle(BOLD);
-        text("Skicklighetsnivå", canvasSize / 2, canvasSize - margin + 25);
-        push();
-        translate(margin - 25, canvasSize / 2);
-        rotate(-PI / 2);
-        text("Utmaningsnivå", 0, 0);
-        pop();
-
-        textSize(canvasSize * 0.03);
-        textStyle(NORMAL);
-        text("Låg", margin, canvasSize - margin + 15);
-        text("Hög", canvasSize - margin, canvasSize - margin + 15);
-        push();
-        translate(margin - 15, canvasSize - margin);
-        rotate(-PI / 2);
-        text("Låg", 0, 0);
-        pop();
-        push();
-        translate(margin - 15, margin);
-        rotate(-PI / 2);
-        text("Hög", 0, 0);
-        pop();
-
-        textSize(canvasSize * 0.03);
-
-        fill(50, 50, 50, 180);
-        text("Apati", margin + graphWidth/6 + 1, margin + graphHeight*5/6 + 1);
-        text("Tristess", margin + graphWidth/2 + 1, margin + graphHeight*5/6 + 1);
-        text("Avslappning", margin + graphWidth*5/6 + 1, margin + graphHeight*5/6 + 1);
-
-        text("Oro", margin + graphWidth/6 + 1, margin + graphHeight/2 + 1);
-        text("Vardag", margin + graphWidth/2 + 1, margin + graphHeight/2 + 1);
-        text("Kontroll", margin + graphWidth*5/6 + 1, margin + graphHeight/2 + 1);
-
-        text("Ångest", margin + graphWidth/6 + 1, margin + graphHeight/6 + 1);
-        text("Upphetsning", margin + graphWidth/2 + 1, margin + graphHeight/6 + 1);
-        text("Flow", margin + graphWidth*5/6 + 1, margin + graphHeight/6 + 1);
-
-        fill(255);
-        text("Apati", margin + graphWidth/6, margin + graphHeight*5/6);
-        text("Tristess", margin + graphWidth/2, margin + graphHeight*5/6);
-        text("Avslappning", margin + graphWidth*5/6, margin + graphHeight*5/6);
-
-        text("Oro", margin + graphWidth/6, margin + graphHeight/2);
-        text("Vardag", margin + graphWidth/2, margin + graphHeight/2);
-        text("Kontroll", margin + graphWidth*5/6, margin + graphHeight/2);
-
-        text("Ångest", margin + graphWidth/6, margin + graphHeight/6);
-        text("Upphetsning", margin + graphWidth/2, margin + graphHeight/6);
-        text("Flow", margin + graphWidth*5/6, margin + graphHeight/6);
-
-
-        let currentPointTimeLabel = document.getElementById('current-point-time-label');
-        let clicks = storedData[currentObjective];
-
-        if (showHistory && clicks && clicks.length > 0) {
-            let displayIndex = -1;
-
-            if (selectedPointIndex !== -1) {
-                displayIndex = selectedPointIndex;
-            } else if (clicks.length > 0) {
-                displayIndex = clicks.length - 1;
-            }
-
-            if (displayIndex >= 0 && displayIndex < clicks.length) {
-                let currentClick = clicks[displayIndex];
-                let date = new Date(currentClick.timestamp);
-                let hours = date.getHours().toString().padStart(2, '0');
-                let minutes = date.getMinutes().toString().padStart(2, '0');
-                currentPointTimeLabel.innerText = `${hours}:${minutes}`;
-                currentPointTimeLabel.style.display = 'block';
-            } else {
-                currentPointTimeLabel.style.display = 'none';
-            }
-        } else {
-            currentPointTimeLabel.style.display = 'none';
+        if (dataPoints.length === 0) {
+            isModalOpen = true;
+            showAIResponse("Fråga AI", "Du har inga datapunkter att referera till i din fråga. Vänligen lägg till minst en punkt först.");
+            return;
         }
 
-        if (showHistory && clicks) {
-          for (let i = 0; i < clicks.length; i++) {
-                if (i === clicks.length - 1 && selectedPointIndex !== clicks.length - 1) {
+        isModalOpen = true;
+        aiResponseTitle.textContent = "Svar på din fråga";
+        aiResponseText.textContent = "";
+        aiLoadingSpinner.style.display = 'block';
+        aiResponseModal.style.display = 'flex';
+
+        const prompt = `Här är min historik av datapunkter från en flow-matris: ${JSON.stringify(dataPoints)}. Svara på följande fråga: ${question}`;
+
+        try {
+            const result = await callGeminiAPI(prompt);
+            aiResponseText.innerHTML = result;
+        } catch (error) {
+            aiResponseText.textContent = "Ett fel inträffade. Vänligen försök igen senare.";
+            console.error("AI query failed:", error);
+        } finally {
+            aiLoadingSpinner.style.display = 'none';
+        }
+    }
+
+    function showAIResponse(title, text) {
+        aiResponseTitle.textContent = title;
+        aiResponseText.textContent = text;
+        aiLoadingSpinner.style.display = 'none';
+        aiResponseModal.style.display = 'flex';
+    }
+    
+    // Använd Gemini API för att generera text eller strukturerad data
+    async function callGeminiAPI(prompt, responseSchema = null) {
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = { contents: chatHistory };
+        if (responseSchema) {
+            payload.generationConfig = {
+                responseMimeType: "application/json",
+                responseSchema: responseSchema
+            };
+        }
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+        let response = null;
+        let retryCount = 0;
+        const maxRetries = 5;
+
+        while (retryCount < maxRetries) {
+            try {
+                response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.status === 429) {
+                    retryCount++;
+                    const delay = Math.pow(2, retryCount) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
                     continue;
                 }
                 
-                let click = clicks[i];
-                let color;
-                switch (click.mood) {
-                  case 'good': color = [0, 200, 0]; break;
-                  case 'sad': color = [0, 0, 200]; break;
-                  case 'happy': color = [255, 215, 0]; break;
-                  case 'bad': color = [200, 0, 0]; break;
-                  case 'neutral': color = [200, 200, 200]; break;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message);
                 }
 
-                stroke(255);
-                strokeWeight(1);
-                fill(color);
-                if (click.mood === 'neutral') {
-                    push();
-                    translate(click.x, click.y);
-                    rotate(PI / 4);
-                    rectMode(CENTER);
-                    rect(0, 0, 8, 8);
-                    pop();
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
                 } else {
-                    ellipse(click.x, click.y, 8, 8);
+                    throw new Error("Unexpected API response format");
                 }
-                noStroke();
-
-                if (i === selectedPointIndex) {
-                    stroke(255);
-                    strokeWeight(3);
-                    fill(color);
-                    if (click.mood === 'neutral') {
-                        push();
-                        translate(click.x, click.y);
-                        rotate(PI / 4);
-                        rectMode(CENTER);
-                        rect(0, 0, 12, 12);
-                        pop();
-                    } else {
-                        ellipse(click.x, click.y, 12, 12);
-                    }
-                    noStroke();
-                }
-                
-                if (click.note && showHistory) {
-                    fill(255);
-                    textSize(12);
-                    textStyle(NORMAL);
-                    text(click.note, click.x + 20, click.y - 10);
-                }
-
+            } catch (error) {
+                console.error("Fetch error:", error);
+                retryCount++;
+                const delay = Math.pow(2, retryCount) * 1000;
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
-
-        if (showHistory && clicks && clicks.length > 1) {
-            noFill();
-            stroke(255, 120);
-            strokeWeight(2);
-            beginShape();
-            curveVertex(clicks[0].x, clicks[0].y);
-            for (let i = 0; i < clicks.length; i++) {
-                curveVertex(clicks[i].x, clicks[i].y);
-            }
-            curveVertex(clicks[clicks.length - 1].x, clicks[clicks.length - 1].y);
-            endShape();
-        }
-
-        if (showHistory && selectedPointIndex !== -1 && clicks && clicks.length > selectedPointIndex) {
-            drawSelectedPointAndLines(selectedPointIndex);
-        }
-
-        if (!moodSelectorVisible && !suggestionVisible && clicks && clicks.length > 0) {
-            let latestClick = clicks[clicks.length - 1];
-
-            if ((showHistory && selectedPointIndex !== clicks.length - 1) || !showHistory) {
-                let color;
-                switch (latestClick.mood) {
-                    case 'good': color = [0, 200, 0]; break;
-                    case 'sad': color = [0, 0, 200]; break;
-                    case 'happy': color = [255, 215, 0]; break;
-                    case 'bad': color = [200, 0, 0]; break;
-                    case 'neutral': color = [200, 200, 200]; break;
-                }
-                stroke(255);
-                strokeWeight(2);
-                fill(color);
-
-                let elapsed = (millis() - lastPointAnimationStartTime) / 1000;
-                let scale = 1 + 0.4 * abs(sin(elapsed * PI));
-                if (latestClick.mood === 'neutral') {
-                    push();
-                    translate(latestClick.x, latestClick.y);
-                    rotate(PI / 4);
-                    rectMode(CENTER);
-                    rect(0, 0, 8 * scale, 8 * scale);
-                    pop();
-                } else {
-                    ellipse(latestClick.x, latestClick.y, 8 * scale, 8 * scale);
-                }
-                noStroke();
-            }
-
-            if (!showHistory) {
-                let maxTrailPoints = 10;
-                for (let i = clicks.length - 2; i >= 0 && (clicks.length - 1 - i) <= maxTrailPoints; i--) {
-                    let click = clicks[i];
-                    let color;
-                    switch (click.mood) {
-                        case 'good': color = [0, 200, 0]; break;
-                        case 'sad': color = [0, 0, 200]; break;
-                        case 'happy': color = [255, 215, 0]; break;
-                        case 'bad': color = [200, 0, 0]; break;
-                        case 'neutral': color = [200, 200, 200]; break;
-                    }
-
-                    let alpha = map((clicks.length - 1 - i), 1, maxTrailPoints + 1, 200, 0);
-                    alpha = constrain(alpha, 0, 255);
-
-                    stroke(255, alpha);
-                    strokeWeight(1);
-                    fill(color[0], color[1], color[2], alpha);
-                    if (click.mood === 'neutral') {
-                        push();
-                        translate(click.x, click.y);
-                        rotate(PI / 4);
-                        rectMode(CENTER);
-                        rect(0, 0, 8, 8);
-                        pop();
-                    } else {
-                        ellipse(click.x, click.y, 8, 8);
-                    }
-                    noStroke();
-                }
-            }
-        }
-      } catch (e) {
-        console.error("Error in draw:", e);
-      }
+        throw new Error("Failed to get a response from the API after multiple retries.");
     }
 
-    function drawSelectedPointAndLines(index) {
-        const clicks = storedData[currentObjective];
-        if (!clicks || index < 0 || index >= clicks.length) return;
-
-        let currentClick = clicks[index];
-        let color;
-        switch (currentClick.mood) {
-            case 'good': color = [0, 200, 0]; break;
-            case 'sad': color = [0, 0, 200]; break;
-            case 'happy': color = [255, 215, 0]; break;
-            case 'bad': color = [200, 0, 0]; break;
-            case 'neutral': color = [200, 200, 200]; break;
-        }
-
-        stroke(255);
-        strokeWeight(2);
-        noFill();
-        
-        let p0, p1, p2, p3;
-
-        // Draw line segments leading up to the selected point
-        if (index > 0) {
-            p0 = (index - 2 >= 0) ? clicks[index - 2] : clicks[index-1];
-            p1 = clicks[index - 1];
-            p2 = clicks[index];
-            p3 = (index + 1 < clicks.length) ? clicks[index + 1] : clicks[index];
-
-            beginShape();
-            curveVertex(p0.x, p0.y);
-            curveVertex(p1.x, p1.y);
-            curveVertex(p2.x, p2.y);
-            curveVertex(p3.x, p3.y);
-            endShape();
-        }
-
-        // Draw line segments from the selected point
-        if (index < clicks.length - 1) {
-            p0 = (index - 1 >= 0) ? clicks[index - 1] : clicks[index];
-            p1 = clicks[index];
-            p2 = clicks[index + 1];
-            p3 = (index + 2 < clicks.length) ? clicks[index + 2] : clicks[index + 1];
-
-            beginShape();
-            curveVertex(p0.x, p0.y);
-            curveVertex(p1.x, p1.y);
-            curveVertex(p2.x, p2.y);
-            curveVertex(p3.x, p3.y);
-            endShape();
-        }
-        noStroke();
-
-        stroke(255);
-        strokeWeight(3);
-        fill(color);
-        if (currentClick.mood === 'neutral') {
-            push();
-            translate(currentClick.x, currentClick.y);
-            rotate(PI / 4);
-            rectMode(CENTER);
-            rect(0, 0, 12, 12);
-            pop();
-        } else {
-            ellipse(currentClick.x, currentClick.y, 12, 12);
-        }
-        noStroke();
-
-        if (currentClick.note) {
-            fill(255);
-            textSize(12);
-            textStyle(NORMAL);
-            text(currentClick.note, currentClick.x + 20, currentClick.y - 10);
-        }
+    // Event listeners
+    document.getElementById('mood-good').addEventListener('click', (e) => { e.stopPropagation(); addPoint('good'); });
+    document.getElementById('mood-bad').addEventListener('click', (e) => { e.stopPropagation(); addPoint('bad'); });
+    document.getElementById('mood-neutral').addEventListener('click', (e) => { e.stopPropagation(); addPoint('neutral'); });
+    document.getElementById('save-note-button').addEventListener('click', (e) => { e.stopPropagation(); finalizePoint(noteInput.value); });
+    document.getElementById('skip-note-button').addEventListener('click', (e) => { e.stopPropagation(); finalizePoint(); });
+    undoButton.addEventListener('click', (e) => { e.stopPropagation(); undoLastPoint(); });
+    resetButton.addEventListener('click', (e) => { e.stopPropagation(); resetApp(); });
+    document.getElementById('close-ai-response-button').addEventListener('click', (e) => { e.stopPropagation(); closeAIResponseModal(); });
+    document.getElementById('analyze-data-button').addEventListener('click', (e) => { e.stopPropagation(); analyzeData(); });
+    document.getElementById('ask-ai-button').addEventListener('click', (e) => { e.stopPropagation(); askAI(); });
+    
+    // Starta skissen när DOM är laddad
+    window.onload = function() {
+      p5SketchInstance = new p5(s);
     }
-
-
-    function mousePressed() {
-      try {
-        if (suggestionVisible || moodSelectorVisible) return;
-        
-        const margin = canvasSize * 0.125;
-        const graphWidth = canvasSize - 2 * margin;
-        const graphHeight = canvasSize - 2 * margin;
-
-        if (mouseX >= margin && mouseX <= canvasSize - margin && mouseY >= margin && mouseY <= canvasSize - margin) {
-          if (showHistory) {
-            const clicks = storedData[currentObjective];
-            if (!clicks || clicks.length <= 0) {
-                selectedPointIndex = -1;
-                updatePlaybackNavigationVisibility();
-                hideNoteInput();
-                redraw();
-                return;
-            }
-
-            let clickedOnPoint = false;
-            for (let i = clicks.length - 1; i >= 0; i--) {
-                let click = clicks[i];
-                if (dist(mouseX, mouseY, click.x, click.y) < 15) {
-                    if (selectedPointIndex === i) {
-                        selectedPointIndex = -1;
-                        hideNoteInput();
-                    } else {
-                        selectedPointIndex = i;
-                        showNoteInputForSelectedPoint(clicks[selectedPointIndex].note || '');
-                    }
-                    clickedOnPoint = true;
-                    break;
-                }
-            }
-
-            if (!clickedOnPoint && selectedPointIndex !== -1) {
-                selectedPointIndex = -1;
-                hideNoteInput();
-            }
-            updatePlaybackNavigationVisibility();
-            redraw();
-          } else {
-            clicked = true;
-            clickX = mouseX;
-            clickY = mouseY;
-            let x = (mouseX - margin) / graphWidth;
-            let y = 1 - (mouseY - margin) / graphHeight;
-            selectedZone = getZone(x, y);
-            hideNoteInput();
-            showMoodSelector();
-          }
-          console.log("Mus klickad vid:", mouseX, mouseY, "Zone:", selectedZone, "ShowHistory:", showHistory, "Selected Point Index:", selectedPointIndex);
-        }
-      } catch (e) {
-        console.error("Fel i mousePressed:", e);
-      }
-    }
-
-    function handleMouseEnter() {
-        if (showHistory) {
-            canvas.elt.style.cursor = 'pointer';
-        }
-    }
-
-    function handleMouseLeave() {
-        canvas.elt.style.cursor = 'default';
-    }
-
-
-    function showMoodSelector() {
-      let overlayDiv = document.getElementById('overlay');
-      let moodSelectorDiv = document.getElementById('mood-selector');
-      let displayModeLabel = document.getElementById('display-mode-label');
-      let currentPointTimeLabel = document.getElementById('current-point-time-label');
-      let toggleViewContainer = document.getElementById('toggle-view-container');
-      let playbackNavControls = document.getElementById('playback-navigation-controls');
-      let cornerLines = document.querySelectorAll('.corner-line');
-      let pauseIcon = document.getElementById('pause-icon');
-
-      let topButtonsContainer = document.getElementById('top-buttons-container');
-      let selectorsContainer = document.getElementById('selectors-container');
-
-      moodSelectorVisible = true;
-      overlayDiv.style.display = 'block';
-      moodSelectorDiv.style.display = 'block';
-      canvas.elt.style.display = 'none';
-      topButtonsContainer.style.display = 'none';
-      selectorsContainer.style.display = 'none';
-      displayModeLabel.style.display = 'none';
-      currentPointTimeLabel.style.display = 'none';
-      toggleViewContainer.style.display = 'none';
-      playbackNavControls.style.display = 'none';
-      cornerLines.forEach(line => line.style.display = 'none');
-      pauseIcon.style.display = 'none';
-      hideNoteInput();
-      overlayDiv.onclick = cancelMoodSelection;
-      console.log("Visar mood selector");
-    }
-
-    function cancelMoodSelection() {
-      let overlayDiv = document.getElementById('overlay');
-      let moodSelectorDiv = document.getElementById('mood-selector');
-      let displayModeLabel = document.getElementById('display-mode-label');
-      let currentPointTimeLabel = document.getElementById('current-point-time-label');
-      let toggleViewContainer = document.getElementById('toggle-view-container');
-      let playbackNavControls = document.getElementById('playback-navigation-controls');
-      let cornerLines = document.querySelectorAll('.corner-line');
-      let pauseIcon = document.getElementById('pause-icon');
-
-      let topButtonsContainer = document.getElementById('top-buttons-container');
-      let selectorsContainer = document.getElementById('selectors-container');
-
-      moodSelectorVisible = false;
-      clicked = false;
-      overlayDiv.style.display = 'none';
-      moodSelectorDiv.style.display = 'none';
-      canvas.elt.style.display = 'block';
-      toggleViewContainer.style.display = 'block';
-      updateViewModeButtonText();
-      displayModeLabel.style.display = 'flex';
-      updatePlaybackNavigationVisibility();
-      updateCornerVisibility();
-      hideNoteInput();
-      overlayDiv.onclick = null;
-      topButtonsContainer.style.display = 'flex';
-      selectorsContainer.style.display = 'flex';
-      console.log("Avbryter mood selection");
-    }
-
-    function selectMood(mood) {
-      let overlayDiv = document.getElementById('overlay');
-      let moodSelectorDiv = document.getElementById('mood-selector');
-      let suggestionsDiv = document.getElementById('suggestions');
-      let displayModeLabel = document.getElementById('display-mode-label');
-      let currentPointTimeLabel = document.getElementById('current-point-time-label');
-      let toggleViewContainer = document.getElementById('toggle-view-container');
-      let playbackNavControls = document.getElementById('playback-navigation-controls');
-      let cornerLines = document.querySelectorAll('.corner-line');
-      let pauseIcon = document.getElementById('pause-icon');
-
-      let topButtonsContainer = document.getElementById('top-buttons-container');
-      let selectorsContainer = document.getElementById('selectors-container');
-
-      if (!storedData[currentObjective]) {
-        storedData[currentObjective] = [];
-      }
-      storedData[currentObjective].push({
-        x: clickX,
-        y: clickY,
-        zone: selectedZone,
-        mood: mood,
-        timestamp: new Date().toISOString(),
-        note: ''
-      });
-      storedData[currentObjective].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-      try {
-        localStorage.setItem('flowCheckData', JSON.stringify(storedData));
-      } catch (e) {
-        console.warn("Varning: Kunde inte spara till localStorage", e);
-      }
-
-      lastPointAnimationStartTime = millis();
-
-      moodSelectorVisible = false;
-      moodSelectorDiv.style.display = 'none';
-      overlayDiv.style.display = 'block';
-      suggestionsDiv.style.display = 'block';
-      suggestionsDiv.innerHTML = `<p>${getFlowSuggestion(selectedZone, mood, currentObjective)}</p>`;
-      canvas.elt.style.display = 'none';
-      topButtonsContainer.style.display = 'none';
-      selectorsContainer.style.display = 'none';
-      displayModeLabel.style.display = 'none';
-      currentPointTimeLabel.style.display = 'none';
-      toggleViewContainer.style.display = 'none';
-      playbackNavControls.style.display = 'none';
-      cornerLines.forEach(line => line.style.display = 'none');
-      pauseIcon.style.display = 'none';
-      hideNoteInput();
-
-      function hideSuggestion() {
-        suggestionsDiv.style.display = 'none';
-        overlayDiv.style.display = 'none';
-        suggestionVisible = false;
-        clicked = false;
-        showHistory = false;
-        selectedPointIndex = -1;
-        updateViewModeButtonText();
-        canvas.elt.style.display = 'block';
-        toggleViewContainer.style.display = 'block';
-        displayModeLabel.style.display = 'flex';
-        updatePlaybackNavigationVisibility();
-        updateCornerVisibility();
-        hideNoteInput();
-        overlayDiv.onclick = null;
-        topButtonsContainer.style.display = 'flex';
-        selectorsContainer.style.display = 'flex';
-        console.log("Döljer förslag");
-      }
-
-      suggestionsDiv.onclick = hideSuggestion;
-      overlayDiv.onclick = hideSuggestion;
-      suggestionVisible = true;
-      console.log("Vald känsla:", mood, "Zone:", selectedZone);
-    }
-
-    function undoMoodboard() {
-      if (storedData[currentObjective] && storedData[currentObjective].length > 0) {
-        storedData[currentObjective].pop();
-        selectedPointIndex = -1;
-        lastPointAnimationStartTime = millis();
-        try {
-          localStorage.setItem('flowCheckData', JSON.stringify(storedData));
-        } catch (e) {
-          console.warn("Varning: Kunde inte spara till localStorage", e);
-        }
-        updatePlaybackNavigationVisibility();
-        hideNoteInput();
-        redraw();
-        if (storedData[currentObjective].length === 0) {
-          document.getElementById('current-point-time-label').style.display = 'none';
-        }
-        console.log("Ångra utförd");
-      }
-    }
-
-    function clearCurrentObjectiveHistory() {
-      storedData[currentObjective] = [];
-      selectedPointIndex = -1;
-      try {
-        localStorage.setItem('flowCheckData', JSON.stringify(storedData));
-      } catch (e) {
-        console.warn("Varning: Kunde inte spara till localStorage", e);
-      }
-      updatePlaybackNavigationVisibility();
-      hideNoteInput();
-      redraw();
-      document.getElementById('current-point-time-label').style.display = 'none';
-      console.log(`History cleared for objective: ${currentObjective}`);
-    }
-
-    function toggleViewMode() {
-      showHistory = !showHistory;
-      clicked = false;
-      selectedPointIndex = -1;
-      lastPointAnimationStartTime = millis();
-      if (!showHistory) {
-        document.getElementById('current-point-time-label').style.display = 'none';
-      }
-      updateViewModeButtonText();
-      updatePlaybackNavigationVisibility();
-      updateCornerVisibility();
-      hideNoteInput();
-      redraw();
-      console.log("Visningsläge växlat. showHistory:", showHistory);
-    }
-
-    function updateViewModeButtonText() {
-      const toggleButton = document.getElementById('toggle-view-button');
-      const buttonTextSpan = document.getElementById('button-text');
-      const liveIndicator = document.getElementById('live-indicator');
-      const displayModeLabel = document.getElementById('display-mode-label');
-      const displayModeTextSpan = document.getElementById('display-mode-text');
-      const liveModeDot = document.getElementById('live-mode-dot');
-      const pauseIcon = document.getElementById('pause-icon');
-
-      if (showHistory) {
-        displayModeTextSpan.innerText = 'PLAYBACK';
-        displayModeLabel.style.color = 'white';
-        liveModeDot.style.display = 'none';
-        liveModeDot.classList.remove('blinking');
-        pauseIcon.style.display = 'block';
-      } else {
-        displayModeTextSpan.innerText = 'LIVE';
-        displayModeLabel.style.color = 'gray';
-        liveModeDot.style.display = 'block';
-        liveModeDot.classList.add('blinking');
-        pauseIcon.style.display = 'none';
-      }
-
-      if (showHistory) {
-        buttonTextSpan.innerText = 'Gå till LIVE';
-        liveIndicator.style.display = 'block';
-        toggleButton.classList.add('live-mode-toggle');
-        toggleButton.classList.remove('playback-mode-toggle');
-      } else {
-        buttonTextSpan.innerText = 'Gå till PLAYBACK';
-        liveIndicator.style.display = 'none';
-        toggleButton.classList.remove('live-mode-toggle');
-        toggleButton.classList.add('playback-mode-toggle');
-      }
-    }
-
-    function updatePlaybackNavigationVisibility() {
-      const playbackNavControls = document.getElementById('playback-navigation-controls');
-      const prevButton = document.getElementById('prev-point-button');
-      const nextButton = document.getElementById('next-point-button');
-      const clicks = storedData[currentObjective];
-
-      if (showHistory && clicks && clicks.length > 0) {
-        playbackNavControls.style.display = 'flex';
-
-        if (selectedPointIndex === 0) {
-          prevButton.style.visibility = 'hidden';
-        } else {
-          prevButton.style.visibility = 'visible';
-        }
-
-        if (selectedPointIndex === clicks.length - 1) {
-          nextButton.style.visibility = 'hidden';
-        } else {
-          nextButton.style.visibility = 'visible';
-        }
-      } else {
-        playbackNavControls.style.display = 'none';
-        prevButton.style.visibility = 'hidden';
-        nextButton.style.visibility = 'hidden';
-      }
-    }
-
-
-    function goToPreviousPoint() {
-        const clicks = storedData[currentObjective];
-        if (selectedPointIndex > 0) {
-            selectedPointIndex--;
-            showNoteInputForSelectedPoint(clicks[selectedPointIndex].note || '');
-            updatePlaybackNavigationVisibility();
-            redraw();
-        }
-    }
-
-    function goToNextPoint() {
-        const clicks = storedData[currentObjective];
-        if (selectedPointIndex < clicks.length - 1) {
-            selectedPointIndex++;
-            showNoteInputForSelectedPoint(clicks[selectedPointIndex].note || '');
-            updatePlaybackNavigationVisibility();
-            redraw();
-        }
-    }
-
-    function hideNoteInput() {
-        noteInputContainer.style.display = 'none';
-        noteInput.value = '';
-    }
-
-    function showNoteInputForSelectedPoint(note) {
-        if (showHistory && selectedPointIndex !== -1) {
-            noteInput.value = note;
-            noteInputContainer.style.display = 'block';
-            noteInput.focus();
-        } else {
-            hideNoteInput();
-        }
-    }
-
-    function saveNoteForSelectedPoint() {
-        if (showHistory && selectedPointIndex !== -1) {
-            const clicks = storedData[currentObjective];
-            if (clicks && clicks.length > selectedPointIndex) {
-                clicks[selectedPointIndex].note = noteInput.value;
-                try {
-                    localStorage.setItem('flowCheckData', JSON.stringify(storedData));
-                } catch (e) {
-                    console.warn("Varning: Kunde inte spara anteckning till localStorage", e);
-                }
-                redraw();
-            }
-        }
-    }
-
-    function updateNoteInputPlaceholder() {
-        switch (currentObjective) {
-            case 'Uppgift':
-                noteInput.placeholder = "Hur gick det med uppgiften?";
-                break;
-            case 'Kontakt':
-                noteInput.placeholder = "Hur var interaktionen?";
-                break;
-            case 'Självkänsla':
-                noteInput.placeholder = "Vad fick dig att känna så här?";
-                break;
-            case 'Hälsa & Träning':
-                noteInput.placeholder = "Vad var det för typ av träning?";
-                break;
-            case 'Kreativitet':
-                noteInput.placeholder = "Vad skapade du?";
-                break;
-            case 'Lärande':
-                noteInput.placeholder = "Vad lärde du dig?";
-                break;
-            default:
-                noteInput.placeholder = "Anteckning...";
-        }
-    }
-
-    function updateCornerVisibility() {
-        const cornerLines = document.querySelectorAll('.corner-line');
-        if (showHistory) {
-            cornerLines.forEach(line => line.style.display = 'none');
-        } else {
-            cornerLines.forEach(line => line.style.display = 'block');
-        }
-    }
-
-
-    function getZone(x, y) {
-      if (x >= 0 && x <= 1/3 && y >= 0 && y <= 1/3) return 'Ångest';
-      if (x > 1/3 && x <= 2/3 && y >= 0 && y <= 1/3) return 'Upphetsning';
-      if (x > 2/3 && x <= 1 && y >= 0 && y <= 1/3) return 'Flow';
-
-      if (x >= 0 && x <= 1/3 && y > 1/3 && y <= 2/3) return 'Oro';
-      if (x > 1/3 && x <= 2/3 && y > 1/3 && y <= 2/3) return 'Vardag';
-      if (x > 2/3 && x <= 1 && y > 1/3 && y <= 2/3) return 'Kontroll';
-
-      if (x >= 0 && x <= 1/3 && y > 2/3 && y <= 1) return 'Apati';
-      if (x > 1/3 && x <= 2/3 && y > 2/3 && y <= 1) return 'Tristess';
-      if (x > 2/3 && x <= 1 && y > 2/3 && y <= 1) return 'Avslappning';
-
-      return 'Okänd';
-    }
-
-    function getFlowSuggestion(zone, mood, objective) {
-    let suggestion = "";
-    switch (objective) {
-      case 'Uppgift':
-        switch (zone) {
-          case 'Apati':
-            switch (mood) {
-              case 'good': suggestion = "Hitta en meningsfull lättare uppgift att fokusera på, kanske något du har skjutit upp."; break;
-              case 'sad': suggestion = "Börja med något litet som kräver minimal ansträngning, fokusera på att komma igång."; break;
-              case 'happy': suggestion = "Använd din positiva energi! Hitta något som verkligen intresserar dig, även om det är en liten uppgift."; break;
-              case 'bad': suggestion = "Sök efter en enkel aktivitet som inte kräver mycket, fokusera på återhämtning först."; break;
-              case 'neutral': suggestion = "Hitta en lätt uppgift att fokusera på för att bygga momentum. Små framsteg kan väcka intresset."; break;
-            }
-            break;
-          case 'Tristess':
-            switch (mood) {
-              case 'good': suggestion = "Öka utmaningen i uppgiften eller sätt upp ett nytt, mer stimulerande mål. Vad kan du lära dig som kopplar till detta?"; break;
-              case 'sad': suggestion = "Försök hitta en ny vinkel på uppgiften som gör den mer intressant. Kan du lägga till ett kreativt element?"; break;
-              case 'happy': suggestion = "Kanalisera din positiva energi! Utmana dig själv att göra något du redan kan, men på ett nytt eller snabbare sätt."; break;
-              case 'bad': suggestion = "Försök att omforma uppgiften. Kan du hitta ett litet delmål som känns mer meningsfullt att uppnå?"; break;
-              case 'neutral': suggestion = "Öka utmaningen i uppgiften eller sätt upp ett mer ambitiöst mål. Kanske kan du lära dig något nytt kopplat till detta?"; break;
-            }
-            break;
-          case 'Avslappning':
-            switch (mood) {
-              case 'good': suggestion = "Identifiera nästa steg och höj utmaningsnivån något för att hålla engagemanget uppe. Ett tidspressat moment eller ett nytt element kan hjälpa."; break;
-              case 'sad': suggestion = "Tillåt dig att vara i det, men försök försiktigt att identifiera en liten, lättsam aktivitet som kan distrahera eller muntra upp dig."; break;
-              case 'happy': suggestion = "Bygg vidare på den känslan genom att sätta ett lite mer utmanande men roligt mål. Kan du inspirera någon annan?"; break;
-              case 'bad': suggestion = "Fokusera på grundläggande självvård. Kanske en kort stunds mindfulness eller en kopp te innan du funderar på nästa steg."; break;
-              case 'neutral': suggestion = "Identifiera nästa steg och höj utmaningsnivån något. Kan du lägga till ett tidspressat moment eller ett nytt element?"; break;
-            }
-            break;
-          case 'Oro':
-            switch (mood) {
-              case 'good': suggestion = "Använd din positiva inställning för att metodiskt bryta ner uppgiften i små, hanterbara delar. Fira varje delmål!"; break;
-              case 'sad': suggestion = "Bryt ner uppgiften i mikrosteg och fokusera på bara det allra första. Andas djupt och ta det lugnt."; break;
-              case 'happy': suggestion = "Utnyttja din energi till att skapa en tydlig plan. Visualisera framgång för varje litet steg i uppgiften."; break;
-              case 'bad': suggestion = "Fokusera på att bara ta ett enda litet steg som känns hanterbart. Glöm inte att vara snäll mot dig själv."; break;
-              case 'neutral': suggestion = "Bryt ner uppgiften i mindre, hanterbara delar och fokusera på en i taget. Glöm inte att fira små framsteg!"; break;
-            }
-            break;
-          case 'Vardag':
-            switch (mood) {
-              case 'good': suggestion = "Fundera på hur du kan variera uppgiften eller lägga till ett lekfullt element. Kan du tävla mot dig själv för att öka engagemanget?"; break;
-              case 'sad': suggestion = "Sök efter ett sätt att ge uppgiften lite mer mening eller att hitta en liten belöning efteråt."; break;
-              case 'happy': suggestion = "Använd din glädje till att göra uppgiften till en utmaning eller experimentera med nya metoder."; break;
-              case 'bad': suggestion = "Försök att bryta rutinen, även om det är en liten ändring. Kan du ta en kort paus och sedan se uppgiften med nya ögon?"; break;
-              case 'neutral': suggestion = "Fundera på hur du kan variera uppgiften. Kan du lägga till ett lekfullt element eller tävla mot dig själv?"; break;
-            }
-            break;
-          case 'Kontroll':
-            switch (mood) {
-              case 'good': suggestion = "Hitta en del av uppgiften du kan optimera ytterligare, eller sätt ett snävare tidsmål för att hålla dig skarp. Kan du hjälpa någon annan med din kunskap?"; break;
-              case 'sad': suggestion = "Reflektera över vad som saknas trots din kontroll. Kan du hitta ett nytt, mer personligt mål inom uppgiften?"; break;
-              case 'happy': suggestion = "Utmana dig själv att göra det ännu bättre, eller utforska hur du kan effektivisera processen ytterligare. Kanske kan du undervisa andra?"; break;
-              case 'bad': suggestion = "Kanske är det dags att släppa lite på kontrollen och tillåta spontanitet, eller att delegera en del för att minska bördan."; break;
-              case 'neutral': suggestion = "Hitta en del av uppgiften som du kan göra ännu bättre, eller sätt ett snävare tidsmål. Kan du hjälpa någon annan med din kunskap?"; break;
-            }
-            break;
-          case 'Ångest':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera den energin till en mycket enkel, trygg uppgift som du vet att du klarar av."; break;
-              case 'sad': suggestion = "Minska utmaningsnivån drastiskt. Fokusera på något lugnande, som att andas djupt eller ta en kort paus innan du försöker igen."; break;
-              case 'happy': suggestion = "Försök att identifiera källan till ångesten. Kan du omvandla den överväldigande energin till en liten, konkret handling?"; break;
-              case 'bad': suggestion = "Prioritera att lugna ner dig först. En kort meditation eller en stund i tystnad kan hjälpa. Minska sedan utmaningen radikalt."; break;
-              case 'neutral': suggestion = "Minska utmaningsnivån drastiskt och fokusera på det du redan kan. Ta en paus och kom tillbaka med ett lugnare sinne."; break;
-            }
-            break;
-          case 'Upphetsning':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-              case 'sad': suggestion = "Försök att jorda dig själv och hitta en produktiv väg för den upphetsade energin, så att den inte blir överväldigande."; break;
-              case 'happy': suggestion = "Använd denna höga energi för att ta dig an en utmanande men meningsfull uppgift. Sätt ett specifikt, mätbart mål för att omvandla energin till produktivitet."; break;
-              case 'bad': suggestion = "Ta en stund att lugna systemet. När du känner dig mer stabil, kan du försöka kanalisera energin in i en strukturerad aktivitet."; break;
-              case 'neutral': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-            }
-            break;
-          case 'Flow': suggestion = "Håll fokus, njut av processen och reflektera över vad som gör att det känns så här bra."; break;
-        }
-        break;
-      case 'Kontakt':
-        switch (zone) {
-          case 'Apati':
-            switch (mood) {
-              case 'good': suggestion = "Ta ett litet initiativ till kontakt. En enkel hälsning eller ett leende kan bryta isen."; break;
-              case 'sad': suggestion = "Fokusera på ditt eget välmående. Om du känner dig redo, försök en mycket kort, ytlig interaktion utan krav."; break;
-              case 'happy': suggestion = "Använd din positiva energi! Våga ta en lättsam kontakt, kanske en komplimang eller en kort kommentar om något gemensamt."; break;
-              case 'bad': suggestion = "Prioritera ditt eget utrymme. Om du måste interagera, håll det kort och professionellt, utan att pressa dig själv."; break;
-              case 'neutral': suggestion = "Ta ett litet initiativ till kontakt, som en enkel hälsning eller ett leende. Det kan räcka för att känna dig mer närvarande."; break;
-            }
-            break;
-          case 'Tristess':
-            switch (mood) {
-              case 'good': suggestion = "Hitta ett ämne som intresserar både dig och den andra. Ställ öppna frågor för att utforska gemensamma intressen."; break;
-              case 'sad': suggestion = "Fokusera på att lyssna in den andra personen. Ibland kan en intressant konversation uppstå när du minst anar det."; break;
-              case 'happy': suggestion = "Föreslå en ny, lättsam aktivitet som ni kan göra tillsammans i grupp, t.ex. ett kortspel eller en fika."; break;
-              case 'bad': suggestion = "Fundera på vad som gör interaktionen tråkig. Kan du ändra ämne eller artigt avsluta samtalet för att söka något mer stimulerande?"; break;
-              case 'neutral': suggestion = "Hitta ett ämne som intresserar både dig och den andra. Ställ öppna frågor för att utforska gemensamma intressen och skapa en mer engagerande interaktion."; break;
-            }
-            break;
-          case 'Avslappning':
-            switch (mood) {
-              case 'good': suggestion = "Njut av stunden och var dig själv. Din avslappnade attityd kan smitta av sig och underlätta interaktionen."; break;
-              case 'sad': suggestion = "Tillåt dig att vara i nuet, även om du är ledsen. Du behöver inte prestera. Korta, lugna interaktioner utan krav är okej."; break;
-              case 'happy': suggestion = "Utnyttja din harmoni. Våga vara spontan och inbjudande i samtal. Din positiva utstrålning kan underlätta kontakten."; break;
-              case 'bad': suggestion = "Fokusera på din egen komfort. Om du känner dig obekväm, är det okej att ta ett steg tillbaka eller byta miljö."; break;
-              case 'neutral': suggestion = "Njut av stunden och var dig själv. Din avslappnade attityd kan smitta av sig och underlätta interaktionen, vilket kan göra sociala situationer mindre påfrestande."; break;
-            }
-            break;
-          case 'Oro':
-            switch (mood) {
-              case 'good': suggestion = "Fokusera på att vara närvarande och lyssna aktivt. Du behöver inte fylla tystnaden. Små, korta interaktioner är tillräckligt."; break;
-              case 'sad': suggestion = "Var snäll mot dig själv. Det är okej att känna oro. Försök att fokusera på din andning och ta små steg, som att bara säga hej."; break;
-              case 'happy': suggestion = "Använd din glädje för att hitta ett tryggt ämne att prata om, något du känner dig bekväm med. Låt det leda vägen."; break;
-              case 'bad': suggestion = "Fokusera på att lugna dig själv först. Det är okej att undvika djupa sociala interaktioner just nu. En kort hälsning kan vara nog."; break;
-              case 'neutral': suggestion = "Fokusera på att vara närvarande och lyssna aktivt. Du behöver inte fylla tystnaden. Små, korta interaktioner är tillräckligt för att träna på att hantera social oro."; break;
-            }
-            break;
-          case 'Vardag':
-            switch (mood) {
-              case 'good': suggestion = "Hitta ett nytt, litet sätt att interagera med människor i din vardag. Kanske en vänlig kommentar eller en oväntad fråga."; break;
-              case 'sad': suggestion = "Försök att uttrycka en liten uppskattning eller ett tack till någon du möter i din vardag. Små gester kan bryta känslan av ledsenhet."; break;
-              case 'happy': suggestion = "Se det som en chans att injicera lite extra glädje i vardagsmöten. Ett leende eller en uppmuntrande kommentar kan lysa upp."; break;
-              case 'bad': suggestion = "Fundera på en liten förändring i din rutin som kan göra sociala möten mer hanterbara. Kanske en kort paus före en interaktion."; break;
-              case 'neutral': suggestion = "Hitta ett nytt, litet sätt att interagera med människor i din vardag. Kanske en vänlig kommentar, en oväntad fråga eller ett leende kan skapa en positiv förändring."; break;
-            }
-            break;
-          case 'Kontroll':
-            switch (mood) {
-              case 'good': suggestion = "Tillåt dig att vara mer spontan och mindre planerad i sociala interaktioner. Öva på att följa med i flödet, även när du inte har full kontroll."; break;
-              case 'sad': suggestion = "Fundera på om din önskan om kontroll hindrar dig från genuina möten. Att våga släppa lite kan skapa djupare kontakt."; break;
-              case 'happy': suggestion = "Utmana dig att inte alltid ta ledningen i samtal. Låt andra ta initiativ och öva på att lyssna utan att genast svara."; break;
-              case 'bad': suggestion = "Din kontroll kan vara en skyddsmekanism. Kanske kan du tillåta dig själv att vara lite sårbar och be om hjälp eller förståelse i en social situation."; break;
-              case 'neutral': suggestion = "Tillåt dig att vara mer spontan och mindre planerad i sociala interaktioner. Öva på att följa med i flödet, även när du inte har full kontroll."; break;
-            }
-            break;
-          case 'Ångest':
-            switch (mood) {
-              case 'good': suggestion = "Fokusera på korta, trygga interaktioner där du inte känner press. En enkel hälsning eller ett leende är mer än tillräckligt."; break;
-              case 'sad': suggestion = "Prioritera att lugna dig själv. Försök att inte pressa dig till sociala situationer som känns överväldigande. En kort, tyst närvaro kan räcka."; break;
-              case 'happy': suggestion = "Hitta en trygg person eller grupp att vistas med. Din positiva inställning kan hjälpa dig att hantera ångesten i en kontrollerad miljö."; break;
-              case 'bad': suggestion = "Det är okej att ta ett steg tillbaka. Fokusera på egenvård och minska sociala krav. Du behöver inte prestera just nu."; break;
-              case 'neutral': suggestion = "Minska trycket på dig själv i sociala situationer. Fokusera på korta, trygga interaktioner och tillåt dig att ta ett steg tillbaka om det känns överväldigande."; break;
-            }
-            break;
-          case 'Upphetsning':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera din energi till att vara engagerad i samtalet, men var medveten om att inte dominera. Lyssna in andra."; break;
-              case 'sad': suggestion = "Försök att jorda din energi genom att fokusera på en lugnande aktivitet, och närma dig sociala situationer med ett mer balanserat sinne."; break;
-              case 'happy': suggestion = "Använd din höga energi till att sprida positivitet. Var entusiastisk, men se till att andra också får utrymme att bidra."; break;
-              case 'bad': suggestion = "Din energi kan kännas överväldigande. Ta en paus och försök lugna dig innan du engagerar dig i sociala sammanhang."; break;
-              case 'neutral': suggestion = "Kanalisera din energi till att vara engagerad i samtalet, men var medveten om att inte dominera. Lyssna in andra och bidra på ett balanserat sätt."; break;
-            }
-            break;
-          case 'Flow': suggestion = "Njut av din förmåga att navigera sociala situationer med lätthet. Observera vad som gör att det känns så här bra och hur du kan replikera det."; break;
-        }
-        break;
-      case 'Självkänsla':
-        switch (zone) {
-          case 'Apati':
-            switch (mood) {
-              case 'good': suggestion = "Hitta en meningsfull, lätt uppgift. Känslan av att klara något litet kan stärka din kompetens ytterligare."; break;
-              case 'sad': suggestion = "Börja med en minimal aktivitet som du vet att du kan slutföra. Fokusera på egenvård."; break;
-              case 'happy': suggestion = "Använd din positiva energi! Engagera dig aktivt i något där du kan se tydliga framsteg för att bygga upp din känsla av kompetens."; break;
-              case 'bad': suggestion = "Välj en mycket enkel uppgift som ger dig en omedelbar känsla av att ha åstadkommit något. Var snäll mot dig själv."; break;
-              case 'neutral': suggestion = "Börja med att aktivt engagera dig i en liten, hanterbar uppgift där du kan se tydliga framsteg. Detta bygger successivt upp din känsla av kompetens."; break;
-            }
-            break;
-          case 'Tristess':
-            switch (mood) {
-              case 'good': suggestion = "Sök en ny utmaning som kittlar ditt intresse. Målet är att höja insatsen precis så mycket att du känner dig stimulerad, inte överväldigad."; break;
-              case 'sad': suggestion = "Hitta en kreativ utmaning där processen är viktigare än resultatet. Låt dig experimentera och lära."; break;
-              case 'happy': suggestion = "Utmana dig själv att bemästra en ny färdighet eller fördjupa dig i ett ämne som du brinner för."; break;
-              case 'bad': suggestion = "Försök att hitta en uppgift där du kan få omedelbar feedback och se tydliga framsteg, för att bryta känslan av stagnation."; break;
-              case 'neutral': suggestion = "Sök en ny utmaning som kittlar ditt intresse, där du får möjlighet att lära och utvecklas. Målet är att höja insatsen precis så mycket att du känner dig stimulerad, inte överväldigad."; break;
-            }
-            break;
-          case 'Avslappning':
-            switch (mood) {
-              case 'good': suggestion = "Reflektera medvetet över dina styrkor och små segrar. Hur kan du tillämpa dina förmågor för att ta dig an en meningsfull utmaning som leder till djupare engagemang?"; break;
-              case 'sad': suggestion = "Fokusera på att vila och återhämta dig. Erkänn att det är okej att inte alltid vara på topp."; break;
-              case 'happy': suggestion = "Använd din inre balans för att sätta ett utmanande, men roligt, personligt mål som du kan arbeta mot."; break;
-              case 'bad': suggestion = "Ge dig själv tid att reflektera. Kanske behöver du omvärdera dina mål för att minska pressen på dig själv."; break;
-              case 'neutral': suggestion = "Reflektera medvetet över dina styrkor och små segrar. Visualisera hur du kan tillämpa dina förmågor för att ta dig an en meningsfull utmaning som leder till djupare engagemang."; break;
-            }
-            break;
-          case 'Oro':
-            switch (mood) {
-              case 'good': suggestion = "Bryt ner stora tankar om dig själv till små, konkreta handlingar du kan utföra. Fokusera på att ta ett litet steg framåt och erkänn din ansträngning."; break;
-              case 'sad': suggestion = "Fokusera på en mycket liten, hanterbar uppgift. Varje litet slutfört moment är en vinst."; break;
-              case 'happy': suggestion = "Använd din glädje för att formulera konkreta, realistiska mål. Visualisera framgång för varje litet steg."; break;
-              case 'bad': suggestion = "Minska trycket. Fokusera på en enda sak du kan göra för att må lite bättre just nu. Det är tillräckligt."; break;
-              case 'neutral': suggestion = "Bryt ner stora tankar om dig själv till små, konkreta handlingar du kan utföra. Fokusera på att ta ett litet steg framåt och erkänn din ansträngning, oavsett resultat."; break;
-            }
-            break;
-          case 'Vardag':
-            switch (mood) {
-              case 'good': suggestion = "Inför ett litet, medvetet ögonblick av utmaning i din rutin. Det kan vara att prova något nytt, lära dig en miniskill, eller aktivt söka en situation som kräver ditt fulla fokus."; break;
-              case 'sad': suggestion = "Hitta en aktivitet som ger dig en känsla av tillfredsställelse, även om den är liten. Det kan vara att städa, laga mat, eller en kort promenad."; break;
-              case 'happy': suggestion = "Se det som en möjlighet att finslipa en färdighet eller utforska ett nytt intresse som kan berika din självkänsla."; break;
-              case 'bad': suggestion = "Fundera på vad som skulle ge dig en känsla av framsteg eller meningsfullhet. Även små förändringar kan hjälpa."; break;
-              case 'neutral': suggestion = "Inför ett litet, medvetet ögonblick av utmaning i din rutin. Det kan vara att prova något nytt, lära dig en miniskill, eller aktivt söka en situation som kräver ditt fulla fokus."; break;
-            }
-            break;
-          case 'Kontroll':
-            switch (mood) {
-              case 'good': suggestion = "Utforska gränserna för dina nuvarande färdigheter genom att aktivt söka nya tillämpningar eller undervisa andra. Detta fördjupar din förståelse och breddar din kompetens."; break;
-              case 'sad': suggestion = "Fundera på om din önskan om kontroll hindrar dig från att vara autentisk eller sårbar. Att släppa lite kan stärka dig."; break;
-              case 'happy': suggestion = "Fantastiskt! Utmana dig själv att dela din kunskap eller vägleda andra, det kan ytterligare stärka din självkänsla."; break;
-              case 'bad': suggestion = "Kanske är din kontroll mer ett hinder än en hjälp. Tillåt dig själv att be om hjälp eller släppa taget lite."; break;
-              case 'neutral': suggestion = "Utforska gränserna för dina nuvarande färdigheter genom att aktivt söka nya tillämpningar eller undervisa andra. Detta fördjupar din förståelse och breddar din kompetens."; break;
-            }
-            break;
-          case 'Ångest':
-            switch (mood) {
-              case 'good': suggestion = "Försök att fokusera din energi på en lugnande och repetitiv aktivitet som inte triggar din ångest. Bygg uppåt därifrån."; break;
-              case 'sad': suggestion = "Minska tillfälligt pressen på prestation. Ägna dig åt lugnande aktiviteter som kräver minimal mental ansträngning. Bygg uppåt därifrån."; break;
-              case 'happy': suggestion = "Använd din positiva energi för att identifiera små, realistiska steg du kan ta för att lugna dig själv och bygga förtroende."; break;
-              case 'bad': suggestion = "Prioritera att lugna systemet. Enkel andningsövning eller en stund i naturen kan hjälpa innan du tänker på prestation."; break;
-              case 'neutral': suggestion = "Minska tillfälligt pressen på prestation. Fokusera på att aktivt återhämta dig och ägna dig åt lugnande aktiviteter som kräver minimal mental ansträngning. Bygg uppåt därifrån."; break;
-            }
-            break;
-          case 'Upphetsning':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera din höga energi mot en tydligt definierad, meningsfull uppgift som kräver din fulla koncentration. Sätt ett specifikt, mätbart mål."; break;
-              case 'sad': suggestion = "Försök att jorda dig själv. Kan du hitta ett kreativt uttryck för din energi som också hjälper dig att bearbeta dina känslor?"; break;
-              case 'happy': suggestion = "Utnyttja denna kraftfulla energi för att fördjupa dig i ett projekt du brinner för. Din entusiasm är en resurs!"; break;
-              case 'bad': suggestion = "Din höga energi kan bli överväldigande. Ta en paus och försök att lugna ner dig innan du kanaliserar energin in i en uppgift."; break;
-              case 'neutral': suggestion = "Kanalisera din höga energi mot en tydligt definierad, meningsfull uppgift som kräver din fulla koncentration. Sätt ett specifikt, mätbart mål för att omvandla energin till produktivitet."; break;
-            }
-            break;
-          case 'Flow': suggestion = "Du är i ett kraftfullt flow med din självkänsla! Observera vad som gör att du känner dig så här och hur du kan replikera det för att bibehålla känslan."; break;
-        }
-        break;
-      case 'Hälsa & Träning':
-        switch (zone) {
-          case 'Apati':
-            switch (mood) {
-              case 'good': suggestion = "Välj en lätt träningsform som du faktiskt tycker om, som en lugn promenad eller lite stretchning. Sätt inga höga krav på dig själv."; break;
-              case 'sad': suggestion = "Börja med något minimalt, som att resa dig och sträcka på dig i fem minuter. Fokusera på att komma igång, inte att prestera."; break;
-              case 'happy': suggestion = "Använd din positiva energi! Hitta en rolig aktivitet du kan göra, kanske dansa till din favoritlåt eller cykla en sväng."; break;
-              case 'bad': suggestion = "Fokusera på återhämtning. Kanske en kort andningsövning eller lite lugn yoga kan hjälpa. Lyssna på din kropp."; break;
-              case 'neutral': suggestion = "Hitta en lätt aktivitet att fokusera på för att bygga momentum. Små steg som att ta trapporna istället för hissen kan väcka intresset."; break;
-            }
-            break;
-          case 'Tristess':
-            switch (mood) {
-              case 'good': suggestion = "Öka utmaningen i din träning med en ny övning, ett nytt träningsprogram eller ett mer ambitiöst mål. Vad kan du lära dig som kopplar till detta?"; break;
-              case 'sad': suggestion = "Försök hitta en ny vinkel på träningen som gör den mer intressant. Kan du lägga till ett kreativt inslag, som en annorlunda löprunda eller en ny sport?"; break;
-              case 'happy': suggestion = "Kanalisera din positiva energi! Utmana dig själv att göra något du redan kan, men på ett nytt eller snabbare sätt."; break;
-              case 'bad': suggestion = "Försök att omforma din träningsrutin. Kan du hitta ett litet delmål som känns mer meningsfullt att uppnå?"; break;
-              case 'neutral': suggestion = "Öka utmaningen i din träningsrutin eller sätt upp ett mer ambitiöst mål. Kanske kan du lära dig något nytt kopplat till detta?"; break;
-            }
-            break;
-          case 'Avslappning':
-            switch (mood) {
-              case 'good': suggestion = "Njut av din lugna energi. Sätt ett lite mer utmanande mål för att hålla engagemanget uppe, men glöm inte att också njuta av processen."; break;
-              case 'sad': suggestion = "Tillåt dig att vara i det. Fokusera på att återhämta dig fullt ut. En lugn promenad i naturen kan vara tillräckligt."; break;
-              case 'happy': suggestion = "Använd din harmoni! Bygg vidare på den känslan genom att sätta ett lite mer utmanande men roligt mål. Kan du inspirera någon annan?"; break;
-              case 'bad': suggestion = "Fokusera på grundläggande självvård. Kanske en kort stunds mindfulness eller meditation innan du funderar på nästa steg."; break;
-              case 'neutral': suggestion = "Identifiera nästa steg och höj utmaningsnivån något. Kan du lägga till ett tidspressat moment eller ett nytt element i din träning?"; break;
-            }
-            break;
-          case 'Oro':
-            switch (mood) {
-              case 'good': suggestion = "Använd din positiva inställning för att metodiskt bryta ner dina träningsmål i små, hanterbara delar. Fira varje delmål!"; break;
-              case 'sad': suggestion = "Bryt ner träningspasset i mikrosteg och fokusera på bara det allra första. Andas djupt och ta det lugnt."; break;
-              case 'happy': suggestion = "Utnyttja din energi till att skapa en tydlig träningsplan. Visualisera framgång för varje litet steg i passet."; break;
-              case 'bad': suggestion = "Fokusera på att bara ta ett enda litet steg som känns hanterbart, som att göra en enda armhävning eller 10 knäböj."; break;
-              case 'neutral': suggestion = "Bryt ner din träning i mindre, hanterbara delar och fokusera på en i taget. Glöm inte att fira små framsteg!"; break;
-            }
-            break;
-          case 'Vardag':
-            switch (mood) {
-              case 'good': suggestion = "Fundera på hur du kan variera din träning eller lägga till ett lekfullt element. Kan du tävla mot dig själv för att öka engagemanget?"; break;
-              case 'sad': suggestion = "Sök efter ett sätt att ge din träning lite mer mening eller att hitta en liten belöning efteråt."; break;
-              case 'happy': suggestion = "Använd din glädje till att göra träningen till en utmaning eller experimentera med nya metoder."; break;
-              case 'bad': suggestion = "Försök att bryta rutinen, även om det är en liten ändring. Kan du ta en kort paus och sedan se träningen med nya ögon?"; break;
-              case 'neutral': suggestion = "Fundera på hur du kan variera din träning. Kan du lägga till ett lekfullt element eller tävla mot dig själv?"; break;
-            }
-            break;
-          case 'Kontroll':
-            switch (mood) {
-              case 'good': suggestion = "Hitta en del av din träning du kan optimera ytterligare, eller sätt ett snävare tidsmål för att hålla dig skarp. Kan du hjälpa någon annan med din kunskap?"; break;
-              case 'sad': suggestion = "Reflektera över vad som saknas trots din kontroll. Kan du hitta ett nytt, mer personligt mål med träningen?"; break;
-              case 'happy': suggestion = "Utmana dig själv att göra det ännu bättre, eller utforska hur du kan effektivisera processen ytterligare. Kanske kan du undervisa andra?"; break;
-              case 'bad': suggestion = "Kanske är det dags att släppa lite på kontrollen och tillåta spontanitet, eller att delegera en del för att minska bördan."; break;
-              case 'neutral': suggestion = "Hitta en del av träningen som du kan göra ännu bättre, eller sätt ett snävare tidsmål. Kan du hjälpa någon annan med din kunskap?"; break;
-            }
-            break;
-          case 'Ångest':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera den energin till en mycket enkel, trygg träningsform som du vet att du klarar av."; break;
-              case 'sad': suggestion = "Minska utmaningsnivån drastiskt. Fokusera på något lugnande, som att andas djupt eller ta en kort paus innan du försöker igen."; break;
-              case 'happy': suggestion = "Försök att identifiera källan till ångesten. Kan du omvandla den överväldigande energin till en liten, konkret handling?"; break;
-              case 'bad': suggestion = "Prioritera att lugna ner dig först. En kort meditation eller en stund i tystnad kan hjälpa. Minska sedan utmaningen radikalt."; break;
-              case 'neutral': suggestion = "Minska utmaningsnivån drastiskt och fokusera på det du redan kan. Ta en paus och kom tillbaka med ett lugnare sinne."; break;
-            }
-            break;
-          case 'Upphetsning':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-              case 'sad': suggestion = "Försök att jorda dig själv och hitta en produktiv väg för den upphetsade energin, så att den inte blir överväldigande."; break;
-              case 'happy': suggestion = "Använd denna höga energi för att ta dig an en utmanande men meningsfull träningsuppgift. Sätt ett specifikt, mätbart mål."; break;
-              case 'bad': suggestion = "Ta en stund att lugna systemet. När du känner dig mer stabil, kan du försöka kanalisera energin in i en strukturerad aktivitet."; break;
-              case 'neutral': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-            }
-            break;
-          case 'Flow': suggestion = "Håll fokus, njut av processen och reflektera över vad som gör att det känns så här bra."; break;
-        }
-        break;
-      case 'Kreativitet':
-        switch (zone) {
-          case 'Apati':
-            switch (mood) {
-              case 'good': suggestion = "Börja med något meningsfullt och lätt. Kanske en snabb skiss, en dikt på en rad eller en bild på telefonen. Målet är att komma igång."; break;
-              case 'sad': suggestion = "Fokusera på en minimal aktivitet, som att bara bläddra i en bok om konst eller lyssna på musik utan att skapa något. Släpp kraven."; break;
-              case 'happy': suggestion = "Använd din positiva energi! Välj ett medium du känner dig bekväm med och skapa något fritt och spontant utan krav på perfektion."; break;
-              case 'bad': suggestion = "Sök efter en enkel, kravlös aktivitet. Ta en promenad med fokus på att se färger och former, istället för att skapa något."; break;
-              case 'neutral': suggestion = "Hitta en lätt uppgift för att bygga momentum. Färglägg en målarbok eller öva på en liten del av en låt. Små framsteg kan väcka intresset."; break;
-            }
-            break;
-          case 'Tristess':
-            switch (mood) {
-              case 'good': suggestion = "Öka utmaningen med en ny teknik, ett nytt material eller ett mer stimulerande mål. Vad kan du lära dig som kopplar till detta?"; break;
-              case 'sad': suggestion = "Försök hitta en ny vinkel som gör processen intressant. Kan du lägga till ett lekfullt element eller prova en annan genre?"; break;
-              case 'happy': suggestion = "Kanalisera din positiva energi! Utmana dig själv att göra något du redan kan, men på ett nytt eller oväntat sätt."; break;
-              case 'bad': suggestion = "Försök att omforma din kreativa idé. Kan du hitta ett litet delmål som känns mer meningsfullt att uppnå, som att bara välja palett?"; break;
-              case 'neutral': suggestion = "Öka utmaningen med en ny teknik eller ett nytt, mer ambitiöst mål. Kanske kan du lära dig något nytt kopplat till ditt kreativa område?"; break;
-            }
-            break;
-          case 'Avslappning':
-            switch (mood) {
-              case 'good': suggestion = "Reflektera över dina styrkor som kreatör. Hur kan du tillämpa dem för att ta dig an en meningsfull utmaning som leder till djupare engagemang?"; break;
-              case 'sad': suggestion = "Fokusera på att bara vara. Kanske räcker det med att lyssna på en inspirerande podcast eller titta på andras verk, utan att skapa något själv."; break;
-              case 'happy': suggestion = "Bygg vidare på den känslan genom att sätta ett lite mer utmanande men roligt mål. Kan du inspirera någon annan med din kreativitet?"; break;
-              case 'bad': suggestion = "Fokusera på grundläggande självvård. Ta en paus och kom tillbaka till ditt kreativa projekt med ett lugnare sinne."; break;
-              case 'neutral': suggestion = "Identifiera nästa steg och höj utmaningsnivån något. Kan du lägga till ett tidspressat moment eller ett nytt element?"; break;
-            }
-            break;
-          case 'Oro':
-            switch (mood) {
-              case 'good': suggestion = "Använd din positiva inställning för att metodiskt bryta ner ditt kreativa projekt i små, hanterbara delar. Fira varje delmål!"; break;
-              case 'sad': suggestion = "Bryt ner projektet i mikrosteg och fokusera på bara det allra första. Andas djupt och ta det lugnt."; break;
-              case 'happy': suggestion = "Utnyttja din energi till att skapa en tydlig plan. Visualisera framgång för varje litet steg i projektet."; break;
-              case 'bad': suggestion = "Fokusera på att bara ta ett enda litet steg som känns hanterbart. Glöm inte att vara snäll mot dig själv."; break;
-              case 'neutral': suggestion = "Bryt ner ditt kreativa projekt i mindre, hanterbara delar och fokusera på en i taget. Glöm inte att fira små framsteg!"; break;
-            }
-            break;
-          case 'Vardag':
-            switch (mood) {
-              case 'good': suggestion = "Fundera på hur du kan variera ditt kreativa uttryck eller lägga till ett lekfullt element. Kan du tävla mot dig själv för att öka engagemanget?"; break;
-              case 'sad': suggestion = "Sök efter ett sätt att ge ditt kreativa uttryck lite mer mening eller att hitta en liten belöning efteråt."; break;
-              case 'happy': suggestion = "Använd din glädje till att göra det kreativa projektet till en utmaning eller experimentera med nya metoder."; break;
-              case 'bad': suggestion = "Försök att bryta rutinen, även om det är en liten ändring. Kan du ta en kort paus och sedan se projektet med nya ögon?"; break;
-              case 'neutral': suggestion = "Fundera på hur du kan variera ditt kreativa uttryck. Kan du lägga till ett lekfullt element eller tävla mot dig själv?"; break;
-            }
-            break;
-          case 'Kontroll':
-            switch (mood) {
-              case 'good': suggestion = "Hitta en del av din kreativitet du kan optimera ytterligare, eller sätt ett snävare tidsmål för att hålla dig skarp. Kan du hjälpa någon annan med din kunskap?"; break;
-              case 'sad': suggestion = "Reflektera över vad som saknas trots din kontroll. Kan du hitta ett nytt, mer personligt mål med ditt kreativa projekt?"; break;
-              case 'happy': suggestion = "Utmana dig själv att göra det ännu bättre, eller utforska hur du kan effektivisera processen ytterligare. Kanske kan du undervisa andra?"; break;
-              case 'bad': suggestion = "Kanske är det dags att släppa lite på kontrollen och tillåta spontanitet, eller att delegera en del för att minska bördan."; break;
-              case 'neutral': suggestion = "Hitta en del av din kreativitet som du kan göra ännu bättre, eller sätt ett snävare tidsmål. Kan du hjälpa någon annan med din kunskap?"; break;
-            }
-            break;
-          case 'Ångest':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera den energin till en mycket enkel, trygg kreativ uppgift som du vet att du klarar av."; break;
-              case 'sad': suggestion = "Minska utmaningsnivån drastiskt. Fokusera på något lugnande, som att rita en enda linje eller titta på inspirerande bilder."; break;
-              case 'happy': suggestion = "Försök att identifiera källan till ångesten. Kan du omvandla den överväldigande energin till en liten, konkret handling?"; break;
-              case 'bad': suggestion = "Prioritera att lugna ner dig först. En kort meditation eller en stund i tystnad kan hjälpa. Minska sedan utmaningen radikalt."; break;
-              case 'neutral': suggestion = "Minska utmaningsnivån drastiskt och fokusera på det du redan kan. Ta en paus och kom tillbaka med ett lugnare sinne."; break;
-            }
-            break;
-          case 'Upphetsning':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-              case 'sad': suggestion = "Försök att jorda dig själv och hitta en produktiv väg för den upphetsade energin, så att den inte blir överväldigande."; break;
-              case 'happy': suggestion = "Använd denna höga energi för att ta dig an en utmanande men meningsfull kreativ uppgift. Sätt ett specifikt, mätbart mål."; break;
-              case 'bad': suggestion = "Ta en stund att lugna systemet. När du känner dig mer stabil, kan du försöka kanalisera energin in i en strukturerad aktivitet."; break;
-              case 'neutral': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-            }
-            break;
-          case 'Flow': suggestion = "Håll fokus, njut av processen och reflektera över vad som gör att det känns så här bra."; break;
-        }
-        break;
-      case 'Lärande':
-        switch (zone) {
-          case 'Apati':
-            switch (mood) {
-              case 'good': suggestion = "Hitta ett meningsfullt och lätt ämne att fokusera på, kanske en kort videolektion eller en intressant artikel. Sätt inga krav."; break;
-              case 'sad': suggestion = "Börja med något litet som kräver minimal ansträngning, som att läsa en mening eller en rubrik. Fokusera på att komma igång."; break;
-              case 'happy': suggestion = "Använd din positiva energi! Hitta något du verkligen är nyfiken på, även om det är en liten uppgift."; break;
-              case 'bad': suggestion = "Sök efter en enkel aktivitet som inte kräver mycket, fokusera på återhämtning först."; break;
-              case 'neutral': suggestion = "Hitta en lätt uppgift att fokusera på för att bygga momentum. Små framsteg kan väcka intresset."; break;
-            }
-            break;
-          case 'Tristess':
-            switch (mood) {
-              case 'good': suggestion = "Öka utmaningen i ditt lärande eller sätt upp ett nytt, mer stimulerande mål. Vad kan du lära dig som kopplar till detta?"; break;
-              case 'sad': suggestion = "Försök hitta en ny vinkel på ämnet som gör det mer intressant. Kan du lägga till ett kreativt element, som en tankekarta eller en diskussion?"; break;
-              case 'happy': suggestion = "Kanalisera din positiva energi! Utmana dig själv att bemästra en ny färdighet eller ett nytt ämne på ett nytt eller snabbare sätt."; break;
-              case 'bad': suggestion = "Försök att omforma ditt lärande. Kan du hitta ett litet delmål som känns mer meningsfullt att uppnå, som att lära dig ett enda nytt ord?"; break;
-              case 'neutral': suggestion = "Öka utmaningen i ditt lärande eller sätt upp ett mer ambitiöst mål. Kanske kan du lära dig något nytt kopplat till detta?"; break;
-            }
-            break;
-          case 'Avslappning':
-            switch (mood) {
-              case 'good': suggestion = "Identifiera nästa steg och höj utmaningsnivån något för att hålla engagemanget uppe. Ett tidspressat moment eller ett nytt element kan hjälpa."; break;
-              case 'sad': suggestion = "Tillåt dig att vara i det, men försök försiktigt att identifiera en liten, lättsam aktivitet som kan distrahera eller muntra upp dig."; break;
-              case 'happy': suggestion = "Bygg vidare på den känslan genom att sätta ett lite mer utmanande men roligt mål. Kan du inspirera någon annan?"; break;
-              case 'bad': suggestion = "Fokusera på grundläggande självvård. Kanske en kort stunds mindfulness eller en kopp te innan du funderar på nästa steg."; break;
-              case 'neutral': suggestion = "Identifiera nästa steg och höj utmaningsnivån något. Kan du lägga till ett tidspressat moment eller ett nytt element?"; break;
-            }
-            break;
-          case 'Oro':
-            switch (mood) {
-              case 'good': suggestion = "Använd din positiva inställning för att metodiskt bryta ner ditt lärande i små, hanterbara delar. Fira varje delmål!"; break;
-              case 'sad': suggestion = "Bryt ner lärandet i mikrosteg och fokusera på bara det allra första. Andas djupt och ta det lugnt."; break;
-              case 'happy': suggestion = "Utnyttja din energi till att skapa en tydlig plan. Visualisera framgång för varje litet steg i lärandet."; break;
-              case 'bad': suggestion = "Fokusera på att bara ta ett enda litet steg som känns hanterbart. Glöm inte att vara snäll mot dig själv."; break;
-              case 'neutral': suggestion = "Bryt ner lärandet i mindre, hanterbara delar och fokusera på en i taget. Glöm inte att fira små framsteg!"; break;
-            }
-            break;
-          case 'Vardag':
-            switch (mood) {
-              case 'good': suggestion = "Fundera på hur du kan variera ditt lärande eller lägga till ett lekfullt element. Kan du tävla mot dig själv för att öka engagemanget?"; break;
-              case 'sad': suggestion = "Sök efter ett sätt att ge ditt lärande lite mer mening eller att hitta en liten belöning efteråt."; break;
-              case 'happy': suggestion = "Använd din glädje till att göra lärandet till en utmaning eller experimentera med nya metoder."; break;
-              case 'bad': suggestion = "Försök att bryta rutinen, även om det är en liten ändring. Kan du ta en kort paus och sedan se lärandet med nya ögon?"; break;
-              case 'neutral': suggestion = "Fundera på hur du kan variera ditt lärande. Kan du lägga till ett lekfullt element eller tävla mot dig själv?"; break;
-            }
-            break;
-          case 'Kontroll':
-            switch (mood) {
-              case 'good': suggestion = "Hitta en del av ditt lärande du kan optimera ytterligare, eller sätt ett snävare tidsmål för att hålla dig skarp. Kan du hjälpa någon annan med din kunskap?"; break;
-              case 'sad': suggestion = "Reflektera över vad som saknas trots din kontroll. Kan du hitta ett nytt, mer personligt mål med ditt lärande?"; break;
-              case 'happy': suggestion = "Utmana dig själv att göra det ännu bättre, eller utforska hur du kan effektivisera processen ytterligare. Kanske kan du undervisa andra?"; break;
-              case 'bad': suggestion = "Kanske är det dags att släppa lite på kontrollen och tillåta spontanitet, eller att delegera en del för att minska bördan."; break;
-              case 'neutral': suggestion = "Hitta en del av ditt lärande som du kan göra ännu bättre, eller sätt ett snävare tidsmål. Kan du hjälpa någon annan med din kunskap?"; break;
-            }
-            break;
-          case 'Ångest':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera den energin till en mycket enkel, trygg uppgift som du vet att du klarar av."; break;
-              case 'sad': suggestion = "Minska utmaningsnivån drastiskt. Fokusera på något lugnande, som att andas djupt eller ta en kort paus innan du försöker igen."; break;
-              case 'happy': suggestion = "Försök att identifiera källan till ångesten. Kan du omvandla den överväldigande energin till en liten, konkret handling?"; break;
-              case 'bad': suggestion = "Prioritera att lugna ner dig först. En kort meditation eller en stund i tystnad kan hjälpa. Minska sedan utmaningen radikalt."; break;
-              case 'neutral': suggestion = "Minska utmaningsnivån drastiskt och fokusera på det du redan kan. Ta en paus och kom tillbaka med ett lugnare sinne."; break;
-            }
-            break;
-          case 'Upphetsning':
-            switch (mood) {
-              case 'good': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-              case 'sad': suggestion = "Försök att jorda dig själv och hitta en produktiv väg för den upphetsade energin, så att den inte blir överväldigande."; break;
-              case 'happy': suggestion = "Använd denna höga energi för att ta dig an en utmanande men meningsfull uppgift. Sätt ett specifikt, mätbart mål för att omvandla energin till produktivitet."; break;
-              case 'bad': suggestion = "Ta en stund att lugna systemet. När du känner dig mer stabil, kan du försöka kanalisera energin in i en strukturerad aktivitet."; break;
-              case 'neutral': suggestion = "Kanalisera din energi genom att hitta en tydlig struktur eller ett konkret delmål. Vad är nästa steg att bemästra?"; break;
-            }
-            break;
-          case 'Flow': suggestion = "Håll fokus, njut av processen och reflektera över vad som gör att det känns så här bra."; break;
-        }
-        break;
-    }
-    return suggestion;
-  }
   </script>
 </body>
 </html>
