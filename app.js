@@ -282,8 +282,8 @@ function highlightActivePoint(index) {
 }
 
 function updateMainAdviceBox(advice, question) {
-    mainAdviceText.innerHTML = advice;
-    mainQuestionText.innerHTML = question;
+    mainAdviceText.innerHTML = advice.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    mainQuestionText.innerHTML = question.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
 function updateSlider() {
@@ -375,7 +375,7 @@ async function analyzeData() {
          prompt += ` Användaren har också funderat över följande fråga som bakgrund: "${aiQuestion}".`
     }
 
-    prompt += ` Ge en superkort, handlingsbar slutsats i ett enda stycke (**analysis**). Generera sedan ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserat på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
+    prompt += ` Ge en superkort, handlingsbar slutsats i ett enda stycke (**analysis**). Generera sedan ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
     
     if (analysisHistory.length > 0) {
         prompt += ` Tidigare analys: ${JSON.stringify(analysisHistory[analysisHistory.length - 1])}.`;
@@ -403,7 +403,7 @@ async function analyzeData() {
         const formattedAnalysis = parsedResult.analysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         aiResponseText.innerHTML = `<p>${formattedAnalysis}</p>`;
         
-        updateMainAdviceBox(parsedResult.mainAdvice.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'), parsedResult.mainQuestion.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'));
+        updateMainAdviceBox(parsedResult.mainAdvice, parsedResult.mainQuestion);
     } catch (error) {
         aiResponseText.textContent = "Ett fel inträffade. Vänligen försök igen senare. Det kan bero på att AI:n inte kunde generera ett strukturerat svar.";
         console.error("AI analysis failed:", error);
@@ -443,7 +443,7 @@ async function askAI() {
          prompt += ` Min målsättning är: "${goal}".`;
     }
 
-    prompt += ` Svara kort på följande fråga: ${question}. Efter svaret, ge ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserat på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
+    prompt += ` Svara kort på följande fråga: ${question}. Efter svaret, ge ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
 
     if (analysisHistory.length > 0) {
         prompt += ` Använd gärna den senaste analysen som kontext: ${JSON.stringify(analysisHistory[analysisHistory.length - 1])}.`;
@@ -469,7 +469,7 @@ async function askAI() {
         const formattedAnalysis = parsedResult.analysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         aiResponseText.innerHTML = `<p>${formattedAnalysis}</p>`;
 
-        updateMainAdviceBox(parsedResult.mainAdvice.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'), parsedResult.mainQuestion.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'));
+        updateMainAdviceBox(parsedResult.mainAdvice, parsedResult.mainQuestion);
 
     } catch (error) {
         aiResponseText.textContent = "Ett fel inträffade. Vänligen försök igen senare.";
