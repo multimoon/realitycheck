@@ -29,6 +29,7 @@ const dataSlider = document.getElementById('data-slider');
 const sliderTime = document.getElementById('slider-time');
 const analyzeDataButton = document.getElementById('analyze-data-button');
 const askAiButton = document.getElementById('ask-ai-button');
+const sliderContainer = document.getElementById('slider-container');
 
 // API-nyckel för Gemini API (Ska hanteras säkert på serversidan i produktion)
 const API_KEY = "AIzaSyDmibgNIuPpd1girl8msyfMxnFqSzNWxAw";
@@ -69,7 +70,7 @@ const s = (p) => {
         const row = Math.floor(p.map(y, 0, p.height, 0, 3));
         
         const zones = [
-            ['Angest', 'Upphetsning', 'Flow'],
+            ['Ångest', 'Upphetsning', 'Flow'],
             ['Oro', 'Vardag', 'Kontroll'],
             ['Apati', 'Tristess', 'Avslappning']
         ];
@@ -227,12 +228,12 @@ function closeAIResponseModal() {
 
 function updateDataPointsList() {
     pointsList.innerHTML = '';
-    for (let i = dataPoints.length - 1; i >= 0; i--) {
-        const point = dataPoints[i];
+    // Visa de senaste först
+    const reversedDataPoints = [...dataPoints].reverse(); 
+    reversedDataPoints.forEach((point, i) => {
         const pointElement = document.createElement('div');
-        pointElement.className = `flex justify-between items-center p-2 rounded-md data-point cursor-pointer transition-colors ${i === sliderValue ? 'bg-blue-600' : ''}`;
-        pointElement.classList.add(`mood-${point.mood}`);
-        pointElement.dataset.index = i;
+        pointElement.className = `flex justify-between items-center p-2 rounded-md data-point cursor-pointer transition-colors mood-${point.mood}-border`;
+        pointElement.dataset.index = dataPoints.length - 1 - i;
         
         pointElement.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -256,19 +257,27 @@ function updateDataPointsList() {
         }
         
         pointsList.appendChild(pointElement);
-    }
+    });
     highlightActivePoint(sliderValue);
     p5SketchInstance.redraw();
+    
+    if (dataPoints.length > 0) {
+        undoButton.classList.remove('hidden');
+        resetButton.classList.remove('hidden');
+    } else {
+        undoButton.classList.add('hidden');
+        resetButton.classList.add('hidden');
+    }
 }
 
 function highlightActivePoint(index) {
     const allPoints = document.querySelectorAll('.data-point');
     allPoints.forEach(point => {
-        point.classList.remove('bg-blue-600');
+        point.classList.remove('bg-gray-600');
     });
     const activePoint = document.querySelector(`.data-point[data-index="${index}"]`);
     if (activePoint) {
-        activePoint.classList.add('bg-blue-600');
+        activePoint.classList.add('bg-gray-600');
     }
 }
 
@@ -279,6 +288,7 @@ function updateMainAdviceBox(advice, question) {
 
 function updateSlider() {
     if (dataPoints.length > 0) {
+        sliderContainer.classList.remove('hidden');
         dataSlider.disabled = false;
         dataSlider.max = dataPoints.length - 1;
         dataSlider.value = dataPoints.length - 1;
@@ -286,6 +296,7 @@ function updateSlider() {
         
         updateSliderTimeDisplay();
     } else {
+        sliderContainer.classList.add('hidden');
         dataSlider.disabled = true;
         dataSlider.max = 0;
         dataSlider.value = 0;
