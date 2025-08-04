@@ -1,527 +1,158 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlowCheck</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f0f0f0;
-    }
-    .modal-background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      z-index: 20;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
-    #note-modal, #suggestion-modal, #ai-response-modal {
-      display: none;
-    }
-    .spinner {
-        border: 4px solid rgba(255, 255, 255, 0.1);
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border-left-color: #009723;
-        animation: spin 1s ease infinite;
-        display: none;
-        margin: auto;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    @keyframes pulse {
-        0% { transform: scale(0.8); opacity: 0.8; }
-        50% { transform: scale(1.2); opacity: 0.5; }
-        100% { transform: scale(0.8); opacity: 0.8; }
-    }
-    .pulsing-dot {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background-color: rgba(255, 255, 255, 0.7);
-        border-radius: 50%;
-        animation: pulse 1.5s infinite;
-        pointer-events: none;
-        z-index: 10;
-        transform: translate(-50%, -50%);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowCheck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+        }
+        .modal-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 20;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        #note-modal, #suggestion-modal, #ai-response-modal {
+            display: none;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #009723;
+            animation: spin 1s ease infinite;
+            display: none;
+            margin: auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(0.8); opacity: 0.8; }
+        }
+        .pulsing-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            pointer-events: none;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+        .mood-good { background-color: #10B981; }
+        .mood-neutral { background-color: #6B7280; }
+        .mood-bad { background-color: #EF4444; }
+    </style>
 </head>
 <body class="flex flex-col items-center p-4 bg-gray-100 text-gray-800 min-h-screen">
-  <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-8">
+    <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-8">
 
-    <!-- Top Controls: Undo and Reset buttons -->
-    <div class="flex justify-center items-center space-x-4 p-2 flex-shrink-0">
-      <button id="undo-button" class="bg-gray-600 text-white p-3 rounded-lg shadow-md hover:bg-gray-500 transition-colors">
-        Ångra senaste
-      </button>
-      <button id="reset-button" class="bg-red-500 text-white p-3 rounded-lg shadow-md hover:bg-red-400 transition-colors">
-        Nollställ allt
-      </button>
+        <div class="flex flex-col space-y-4 p-2 flex-shrink-0">
+            <div class="flex justify-between items-center space-x-4">
+                <button id="undo-button" class="bg-gray-600 text-white p-3 rounded-lg shadow-md hover:bg-gray-500 transition-colors flex-1">
+                    Ångra senaste
+                </button>
+                <button id="reset-button" class="bg-red-500 text-white p-3 rounded-lg shadow-md hover:bg-red-400 transition-colors flex-1">
+                    Nollställ allt
+                </button>
+            </div>
+            <input type="text" id="goal-input" placeholder="Skriv din målsättning här (t.ex. 'Uppnå flow i jobbet')" class="w-full p-3 bg-gray-600 text-white rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
+            <div id="canvas-container" class="relative w-full h-full">
+                <div id="click-marker" class="pulsing-dot hidden"></div>
+                </div>
+            
+            <div class="absolute top-1/2 -left-10 transform -translate-y-1/2 -rotate-90 text-white text-md font-bold text-center w-32">Utmaningsnivå</div>
+            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-md font-bold text-center w-32">Skicklighetsnivå</div>
+
+            <div class="absolute top-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Angest</div>
+            <div class="absolute top-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Flow</div>
+            <div class="absolute bottom-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Apati</div>
+            <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Avslappning</div>
+        </div>
+        
+        <div id="slider-container" class="w-full mt-2 mb-4">
+            <input type="range" id="data-slider" min="0" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-center text-gray-400 text-sm mt-2">
+                <span id="slider-time"></span>
+            </div>
+        </div>
+
+        <div class="bg-gray-700 rounded-lg p-4 flex flex-col space-y-3 flex-shrink-0">
+            <h3 class="text-white text-lg font-bold">AI-analys</h3>
+            <textarea id="ai-question-input" rows="2" placeholder="Ställ en fråga om dina datapunkter (t.ex. 'Vad kan jag göra när jag känner mig stressad?') eller klicka på 'Analysera data' för en generell analys." class="w-full p-2 bg-gray-600 text-white rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <div class="flex justify-between space-x-2">
+                <button id="analyze-data-button" class="bg-blue-500 text-white font-semibold p-2 rounded-md hover:bg-blue-600 transition-colors flex-1">Analysera data</button>
+                <button id="ask-ai-button" class="bg-green-500 text-white font-semibold p-2 rounded-md hover:bg-green-600 transition-colors flex-1">Fråga AI</button>
+            </div>
+        </div>
+
+        <div id="main-advice-box" class="bg-white rounded-lg p-4 flex flex-col space-y-3 flex-shrink-0">
+            <h3 class="text-gray-900 text-lg font-bold">Main Advice</h3>
+            <p id="main-advice-text" class="text-gray-500 italic">Vänta på din första analys för att få ditt huvudråd!</p>
+            <h3 class="text-gray-900 text-lg font-bold mt-4">Main Question</h3>
+            <p id="main-question-text" class="text-gray-500 italic">Vänta på din första analys för att få din huvudfråga!</p>
+        </div>
+
+        <div id="data-points-list-container" class="bg-gray-700 rounded-lg p-4 overflow-y-auto min-h-[100px] flex-1">
+            <h3 class="text-white text-lg font-bold mb-2">Dina datapunkter</h3>
+            <div id="points-list" class="space-y-2">
+                </div>
+        </div>
+
     </div>
 
-    <!-- Canvas and Labels Container -->
-    <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
-      <div id="canvas-container" class="relative w-full h-full">
-        <div id="click-marker" class="pulsing-dot hidden"></div>
-        <!-- P5.js canvas will be injected here -->
-      </div>
-      
-      <!-- Axis and Corner Labels -->
-      <div class="absolute top-1/2 -left-10 transform -translate-y-1/2 -rotate-90 text-white text-md font-bold text-center w-32">Utmaningsnivå</div>
-      <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-md font-bold text-center w-32">Skicklighetsnivå</div>
-
-      <div class="absolute top-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Angest</div>
-      <div class="absolute top-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Flow</div>
-      <div class="absolute bottom-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Apati</div>
-      <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Kontroll</div>
-    </div>
-
-    <!-- AI Section -->
-    <div class="bg-gray-700 rounded-lg p-4 flex flex-col space-y-3 flex-shrink-0">
-        <h3 class="text-white text-lg font-bold">AI-analys</h3>
-        <textarea id="ai-question-input" rows="2" placeholder="Ställ en fråga om dina datapunkter (t.ex. 'Vad kan jag göra när jag känner mig stressad?') eller klicka på 'Analysera data' för en generell analys." class="w-full p-2 bg-gray-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        <div class="flex justify-between space-x-2">
-            <button id="analyze-data-button" class="bg-blue-500 text-white font-semibold p-2 rounded-md hover:bg-blue-600 transition-colors flex-1">Analysera data</button>
-            <button id="ask-ai-button" class="bg-green-500 text-white font-semibold p-2 rounded-md hover:bg-green-600 transition-colors flex-1">Fråga AI</button>
+    <div id="suggestion-modal" class="modal-background">
+        <div id="suggestion-box" class="bg-white rounded-lg p-6 shadow-2xl text-center space-y-4 w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold text-gray-900" id="suggestion-text"></h3>
+            <p class="text-gray-600">Hur känner du dig?</p>
+            <div class="flex flex-col space-y-2">
+                <button id="mood-good" class="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 font-semibold">Bra</button>
+                <button id="mood-neutral" class="bg-gray-400 text-white p-3 rounded-lg hover:bg-gray-500 font-semibold">Neutral</button>
+                <button id="mood-bad" class="bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 font-semibold">Dålig</button>
+            </div>
         </div>
     </div>
 
-    <!-- Data Points List -->
-    <div id="data-points-list-container" class="bg-gray-700 rounded-lg p-4 overflow-y-auto min-h-[100px] flex-1">
-      <h3 class="text-white text-lg font-bold mb-2">Dina datapunkter</h3>
-      <div id="points-list" class="space-y-2">
-        <!-- Dynamically added data points will go here -->
-      </div>
+    <div id="note-modal" class="modal-background">
+        <div id="note-box" class="bg-white rounded-lg p-6 shadow-2xl text-center space-y-4 w-11/12 max-w-sm">
+            <h3 class="text-xl font-bold text-gray-900">Lägg till en anteckning</h3>
+            <input type="text" id="note-input" placeholder="Vad hände? (valfritt)" class="w-full p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex justify-center space-x-4">
+                <button id="save-note-button" class="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 font-semibold flex-1">Spara</button>
+                <button id="skip-note-button" class="bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 font-semibold flex-1">Hoppa över</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="ai-response-modal" class="modal-background">
+        <div class="bg-gray-900 p-6 rounded-lg shadow-2xl w-11/12 max-w-md text-white">
+            <h3 class="text-2xl font-bold mb-4" id="ai-response-title"></h3>
+            <div id="ai-response-text" class="text-gray-300 mb-4 overflow-y-auto max-h-64"></div>
+            <div id="ai-loading-spinner" class="spinner"></div>
+            <button id="close-ai-response-button" class="mt-4 bg-gray-600 text-white p-3 rounded-lg w-full hover:bg-gray-500 transition-colors">Stäng</button>
+        </div>
     </div>
 
-  </div>
-
-  <!-- Modal för att visa zon och välja humör -->
-  <div id="suggestion-modal" class="modal-background">
-    <div class="bg-white rounded-lg p-6 shadow-2xl text-center space-y-4 w-11/12 max-w-sm">
-      <h3 class="text-xl font-bold text-gray-900" id="suggestion-text"></h3>
-      <p class="text-gray-600">Hur känner du dig?</p>
-      <div class="flex flex-col space-y-2">
-        <button id="mood-good" class="bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 font-semibold">Bra</button>
-        <button id="mood-neutral" class="bg-gray-400 text-white p-3 rounded-lg hover:bg-gray-500 font-semibold">Neutral</button>
-        <button id="mood-bad" class="bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 font-semibold">Dålig</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal för att lägga till anteckning -->
-  <div id="note-modal" class="modal-background">
-    <div class="bg-white rounded-lg p-6 shadow-2xl text-center space-y-4 w-11/12 max-w-sm">
-      <h3 class="text-xl font-bold text-gray-900">Lägg till en anteckning</h3>
-      <input type="text" id="note-input" placeholder="Vad hände? (valfritt)" class="w-full p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <div class="flex justify-center space-x-4">
-        <button id="save-note-button" class="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 font-semibold flex-1">Spara</button>
-        <button id="skip-note-button" class="bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 font-semibold flex-1">Hoppa över</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Modal för AI-svar -->
-  <div id="ai-response-modal" class="modal-background">
-      <div class="bg-gray-900 p-6 rounded-lg shadow-2xl w-11/12 max-w-md text-white">
-        <h3 class="text-2xl font-bold mb-4" id="ai-response-title"></h3>
-        <div id="ai-response-text" class="text-gray-300 mb-4 overflow-y-auto max-h-64"></div>
-        <div id="ai-loading-spinner" class="spinner"></div>
-        <button id="close-ai-response-button" class="mt-4 bg-gray-600 text-white p-3 rounded-lg w-full hover:bg-gray-500 transition-colors">Stäng</button>
-      </div>
-  </div>
-
-  <script>
-    // Globala variabler
-    let dataPoints = [];
-    let p5SketchInstance = null;
-    let tempPointData = null;
-    let clickedPosition = null;
-    let isModalOpen = false; // Ny flagga för att spåra modal-tillståndet
-
-    // UI-element
-    const pointsList = document.getElementById('points-list');
-    const undoButton = document.getElementById('undo-button');
-    const resetButton = document.getElementById('reset-button');
-    const suggestionModal = document.getElementById('suggestion-modal');
-    const noteModal = document.getElementById('note-modal');
-    const noteInput = document.getElementById('note-input');
-    const clickMarker = document.getElementById('click-marker');
-    const aiResponseModal = document.getElementById('ai-response-modal');
-    const aiResponseTitle = document.getElementById('ai-response-title');
-    const aiResponseText = document.getElementById('ai-response-text');
-    const aiLoadingSpinner = document.getElementById('ai-loading-spinner');
-    const aiQuestionInput = document.getElementById('ai-question-input');
-
-    // --- P5.js SKETCH ---
-    const s = (p) => {
-      let canvasWidth, canvasHeight;
-
-      // Hämta zonen baserat på koordinater
-      function getZoneFromCoordinates(x, y) {
-        // Kartlägger koordinater till zoner på 3x3-matrisen
-        const col = Math.floor(p.map(x, 0, p.width, 0, 3));
-        const row = Math.floor(p.map(y, 0, p.height, 0, 3));
-        
-        const zones = [
-          ['Angest', 'Upphetsning', 'Flow'],
-          ['Oro', 'Vardag', 'Kontroll'],
-          ['Apati', 'Tristess', 'Avslappning']
-        ];
-        
-        return zones[row][col];
-      }
-
-      // Hantera klick på canvas
-      p.mouseClicked = () => {
-        // Förhindra klick om en modal är öppen
-        if (isModalOpen) {
-            return;
-        }
-
-        if (p.mouseX > 0 && p.mouseX < p.width && p.mouseY > 0 && p.mouseY < p.height) {
-          tempPointData = {
-            x: p.mouseX,
-            y: p.mouseY,
-            zone: getZoneFromCoordinates(p.mouseX, p.mouseY)
-          };
-          clickedPosition = {x: p.mouseX, y: p.mouseY};
-          p.redraw();
-          showSuggestionModal(tempPointData.zone);
-        }
-      };
-      
-      // Anpassa canvasstorleken vid ändring av fönster
-      p.windowResized = () => {
-        const containerElement = document.getElementById('canvas-container');
-        p.resizeCanvas(containerElement.offsetWidth, containerElement.offsetHeight);
-        p.redraw();
-      };
-
-      p.setup = () => {
-        const containerElement = document.getElementById('canvas-container');
-        canvasWidth = containerElement.offsetWidth;
-        canvasHeight = containerElement.offsetHeight;
-        p.createCanvas(canvasWidth, canvasHeight).parent('canvas-container');
-        p.background(55, 65, 81); // mörkgrå bakgrund
-        p.noLoop(); // Rita bara om när det behövs
-      };
-
-      p.draw = () => {
-        p.background(55, 65, 81); // Rensa canvas
-        drawGrid(p);
-        
-        // Rita alla befintliga datapunkter
-        for (let point of dataPoints) {
-          drawPoint(p, point);
-        }
-        
-        // Uppdatera markörens position
-        if (clickedPosition) {
-            clickMarker.style.left = `${clickedPosition.x}px`;
-            clickMarker.style.top = `${clickedPosition.y}px`;
-            clickMarker.classList.remove('hidden');
-        } else {
-            clickMarker.classList.add('hidden');
-        }
-      };
-    };
-
-    // --- DRAWING FUNCTIONS ---
-    function drawGrid(p) {
-      p.stroke(75, 85, 99); // Ljusare grå för rutnätet
-      p.strokeWeight(1);
-
-      // Rita rutnät
-      for (let i = 1; i < 3; i++) {
-        p.line(p.width / 3 * i, 0, p.width / 3 * i, p.height);
-        p.line(0, p.height / 3 * i, p.width, p.height / 3 * i);
-      }
-    }
-    
-    function drawPoint(p, point) {
-      let pointColor;
-      switch (point.mood) {
-        case 'good': pointColor = p.color(16, 185, 129); break; // Tailwind green-500
-        case 'bad': pointColor = p.color(239, 68, 68); break; // Tailwind red-500
-        case 'neutral': pointColor = p.color(156, 163, 175); break; // Tailwind gray-400
-        default: pointColor = p.color(255);
-      }
-      p.fill(pointColor);
-      p.noStroke();
-      p.ellipse(point.x, point.y, 10);
-      
-      // Rita anteckningstext om den finns
-      if (point.note) {
-        p.fill(255);
-        p.textSize(10);
-        p.textAlign(p.CENTER, p.BOTTOM);
-        p.text(point.note, point.x, point.y - 12);
-      }
-    }
-
-    // --- UI LOGIC ---
-    function showSuggestionModal(zone) {
-      isModalOpen = true; // Sätt flaggan
-      document.getElementById('suggestion-text').textContent = `Du är i zonen för "${zone}".`;
-      suggestionModal.style.display = 'flex';
-    }
-    
-    function addPoint(mood) {
-      // Funktion som lägger till en punkt och går vidare till nästa modal
-      if (!tempPointData) return;
-      
-      tempPointData.mood = mood;
-      tempPointData.timestamp = Date.now();
-      
-      suggestionModal.style.display = 'none'; // Dölj humör-modalen
-      noteModal.style.display = 'flex'; // Visa antecknings-modalen
-      noteInput.focus();
-    }
-
-    // Funktion för att slutföra processen och återgå till grafen
-    function finalizePoint(note = '') {
-      if (!tempPointData) return;
-
-      tempPointData.note = note.trim();
-      dataPoints.push(tempPointData);
-      updateDataPointsList();
-      
-      // Återställ tillfällig data och indata
-      tempPointData = null;
-      noteInput.value = '';
-      
-      // Dölj noten-modalen och återställ flaggor
-      noteModal.style.display = 'none';
-      clickedPosition = null;
-      isModalOpen = false;
-      p5SketchInstance.redraw();
-    }
-    
-    // Stäng AI-svarsmodalen
-    function closeAIResponseModal() {
-        aiResponseModal.style.display = 'none';
-        isModalOpen = false;
-    }
-
-
-    function updateDataPointsList() {
-      pointsList.innerHTML = '';
-      dataPoints.forEach((point, index) => {
-        const pointElement = document.createElement('div');
-        pointElement.className = 'flex justify-between items-center bg-gray-600 p-2 rounded-md';
-        
-        const date = new Date(point.timestamp);
-        const timeString = date.toLocaleTimeString();
-        
-        const info = document.createElement('div');
-        info.className = 'text-sm text-gray-200';
-        info.textContent = `${timeString} - ${point.zone} (${point.mood})`;
-        pointElement.appendChild(info);
-        
-        if (point.note) {
-            const noteText = document.createElement('span');
-            noteText.className = 'text-sm italic text-gray-400 truncate ml-2';
-            noteText.textContent = `"${point.note}"`;
-            pointElement.appendChild(noteText);
-        }
-        
-        pointsList.appendChild(pointElement);
-      });
-      p5SketchInstance.redraw(); // Tvinga en ommålning av p5.js-skissen
-    }
-
-    function undoLastPoint() {
-      if (dataPoints.length > 0) {
-        dataPoints.pop();
-        updateDataPointsList();
-      }
-    }
-
-    function resetApp() {
-      dataPoints = [];
-      updateDataPointsList();
-      p5SketchInstance.redraw();
-      suggestionModal.style.display = 'none';
-      noteModal.style.display = 'none';
-      aiResponseModal.style.display = 'none';
-      isModalOpen = false;
-      clickedPosition = null;
-    }
-
-    // AI-relaterade funktioner
-    async function analyzeData() {
-        if (isModalOpen) return;
-        
-        if (dataPoints.length === 0) {
-            isModalOpen = true;
-            showAIResponse("Analys av data", "Du har inga datapunkter att analysera än. Klicka på grafen för att lägga till din första punkt.");
-            return;
-        }
-
-        isModalOpen = true;
-        aiResponseTitle.textContent = "Analys av dina datapunkter";
-        aiResponseText.innerHTML = "";
-        aiLoadingSpinner.style.display = 'block';
-        aiResponseModal.style.display = 'flex';
-
-        const prompt = `Analysera följande datapunkter från en flow-matris. Varje punkt representerar en upplevelse baserat på skicklighet (x-koordinat) och utmaning (y-koordinat), samt humör och en valfri anteckning. Ge en kort sammanfattning av mönster du ser (max 3 meningar), och ge sedan ett konkret råd om hur man kan förbättra sin 'flow'-upplevelse. Returnera detta som ett JSON-objekt med fälten 'summary' och 'advice'. Datapunkter: ${JSON.stringify(dataPoints)}.`;
-        
-        const responseSchema = {
-            type: "OBJECT",
-            properties: {
-                summary: { type: "STRING" },
-                advice: { type: "STRING" }
-            },
-            propertyOrdering: ["summary", "advice"]
-        };
-
-        try {
-            const result = await callGeminiAPI(prompt, responseSchema);
-            const parsedResult = JSON.parse(result);
-            
-            aiResponseText.innerHTML = `
-                <h4 class="text-xl font-bold mb-2 text-gray-100">Sammanfattning</h4>
-                <p class="mb-4">${parsedResult.summary}</p>
-                <h4 class="text-xl font-bold mb-2 text-gray-100">Konkret råd</h4>
-                <p>${parsedResult.advice}</p>
-            `;
-        } catch (error) {
-            aiResponseText.textContent = "Ett fel inträffade. Vänligen försök igen senare. Det kan bero på att AI:n inte kunde generera ett strukturerat svar.";
-            console.error("AI analysis failed:", error);
-        } finally {
-            aiLoadingSpinner.style.display = 'none';
-        }
-    }
-
-    async function askAI() {
-        if (isModalOpen) return;
-        
-        const question = aiQuestionInput.value.trim();
-        if (question === "") {
-            isModalOpen = true;
-            showAIResponse("Fråga AI", "Vänligen skriv en fråga först!");
-            return;
-        }
-
-        if (dataPoints.length === 0) {
-            isModalOpen = true;
-            showAIResponse("Fråga AI", "Du har inga datapunkter att referera till i din fråga. Vänligen lägg till minst en punkt först.");
-            return;
-        }
-
-        isModalOpen = true;
-        aiResponseTitle.textContent = "Svar på din fråga";
-        aiResponseText.textContent = "";
-        aiLoadingSpinner.style.display = 'block';
-        aiResponseModal.style.display = 'flex';
-
-        const prompt = `Här är min historik av datapunkter från en flow-matris: ${JSON.stringify(dataPoints)}. Svara på följande fråga: ${question}`;
-
-        try {
-            const result = await callGeminiAPI(prompt);
-            aiResponseText.innerHTML = result;
-        } catch (error) {
-            aiResponseText.textContent = "Ett fel inträffade. Vänligen försök igen senare.";
-            console.error("AI query failed:", error);
-        } finally {
-            aiLoadingSpinner.style.display = 'none';
-        }
-    }
-
-    function showAIResponse(title, text) {
-        aiResponseTitle.textContent = title;
-        aiResponseText.textContent = text;
-        aiLoadingSpinner.style.display = 'none';
-        aiResponseModal.style.display = 'flex';
-    }
-    
-    // Använd Gemini API för att generera text eller strukturerad data
-    async function callGeminiAPI(prompt, responseSchema = null) {
-        let chatHistory = [];
-        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-        const payload = { contents: chatHistory };
-        if (responseSchema) {
-            payload.generationConfig = {
-                responseMimeType: "application/json",
-                responseSchema: responseSchema
-            };
-        }
-
-        const apiKey = "AIzaSyDmibgNIuPpd1girl8msyfMxnFqSzNWxAw";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        
-        let response = null;
-        let retryCount = 0;
-        const maxRetries = 5;
-
-        while (retryCount < maxRetries) {
-            try {
-                response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.status === 429) {
-                    retryCount++;
-                    const delay = Math.pow(2, retryCount) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    continue;
-                }
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error.message);
-                }
-
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    return result.candidates[0].content.parts[0].text;
-                } else {
-                    throw new Error("Unexpected API response format");
-                }
-            } catch (error) {
-                console.error("Fetch error:", error);
-                retryCount++;
-                const delay = Math.pow(2, retryCount) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-        throw new Error("Failed to get a response from the API after multiple retries.");
-    }
-
-    // Event listeners
-    document.getElementById('mood-good').addEventListener('click', (e) => { e.stopPropagation(); addPoint('good'); });
-    document.getElementById('mood-bad').addEventListener('click', (e) => { e.stopPropagation(); addPoint('bad'); });
-    document.getElementById('mood-neutral').addEventListener('click', (e) => { e.stopPropagation(); addPoint('neutral'); });
-    document.getElementById('save-note-button').addEventListener('click', (e) => { e.stopPropagation(); finalizePoint(noteInput.value); });
-    document.getElementById('skip-note-button').addEventListener('click', (e) => { e.stopPropagation(); finalizePoint(); });
-    undoButton.addEventListener('click', (e) => { e.stopPropagation(); undoLastPoint(); });
-    resetButton.addEventListener('click', (e) => { e.stopPropagation(); resetApp(); });
-    document.getElementById('close-ai-response-button').addEventListener('click', (e) => { e.stopPropagation(); closeAIResponseModal(); });
-    document.getElementById('analyze-data-button').addEventListener('click', (e) => { e.stopPropagation(); analyzeData(); });
-    document.getElementById('ask-ai-button').addEventListener('click', (e) => { e.stopPropagation(); askAI(); });
-    
-    // Starta skissen när DOM är laddad
-    window.onload = function() {
-      p5SketchInstance = new p5(s);
-    }
-  </script>
+    <script src="app.js"></script>
 </body>
 </html>
