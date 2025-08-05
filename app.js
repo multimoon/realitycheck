@@ -7,6 +7,7 @@ let clickedPosition = null;
 let isModalOpen = false;
 let sliderValue = 0;
 let editingPointIndex = null;
+let hoveringPointIndex = -1; // Index för den punkt musen är över
 
 // UI-element
 const pointsList = document.getElementById('points-list');
@@ -30,6 +31,7 @@ const sliderTime = document.getElementById('slider-time');
 const analyzeDataButton = document.getElementById('analyze-data-button');
 const askAiButton = document.getElementById('ask-ai-button');
 const sliderContainer = document.getElementById('slider-container');
+const tooltip = document.getElementById('tooltip');
 
 // API-nyckel för Gemini API (Ska hanteras säkert på serversidan i produktion)
 const API_KEY = "AIzaSyDmibgNIuPpd1girl8msyfMxnFqSzNWxAw";
@@ -69,10 +71,15 @@ const s = (p) => {
         const col = Math.floor(p.map(x, 0, p.width, 0, 3));
         const row = Math.floor(p.map(y, 0, p.height, 0, 3));
         
+        // Den nya zoner-arrayen är anpassad för den klassiska Flow-matrisen:
+        // Rad 0 (överst) = Hög skicklighet
+        // Rad 2 (nederst) = Låg skicklighet
+        // Kolumn 0 (vänster) = Låg utmaning
+        // Kolumn 2 (höger) = Hög utmaning
         const zones = [
-            ['Ångest', 'Upphetsning', 'Flow'],
-            ['Oro', 'Vardag', 'Kontroll'],
-            ['Apati', 'Tristess', 'Avslappning']
+            ['Ångest', 'Oro', 'Flow'],
+            ['Tristess', 'Vardag', 'Upphetsning'],
+            ['Apati', 'Avslappning', 'Kontroll']
         ];
         
         return zones[row][col];
@@ -93,6 +100,21 @@ const s = (p) => {
             showSuggestionModal(tempPointData.zone);
         }
     }
+
+    function handleMouseMove() {
+        if (isModalOpen) return;
+        hoveringPointIndex = -1;
+        const pointsToShowCount = sliderValue + 1;
+        
+        for (let i = 0; i < pointsToShowCount && i < dataPoints.length; i++) {
+            const d = p.dist(p.mouseX, p.mouseY, dataPoints[i].x, dataPoints[i].y);
+            if (d < 10) {
+                hoveringPointIndex = i;
+                break;
+            }
+        }
+        showTooltip();
+    }
     
     p.windowResized = () => {
         const containerElement = document.getElementById('canvas-container');
@@ -108,11 +130,13 @@ const s = (p) => {
         p.background(55, 65, 81);
         p.noLoop();
         canvasContainer.addEventListener('click', handleCanvasClick);
+        canvasContainer.addEventListener('mousemove', handleMouseMove);
+        canvasContainer.addEventListener('mouseleave', hideTooltip);
     };
 
     p.draw = () => {
         p.background(55, 65, 81);
-        drawGrid(p);
+        drawGridAndAxes(p);
         
         const pointsToShowCount = sliderValue + 1;
         for (let i = 0; i < pointsToShowCount && i < dataPoints.length; i++) {
@@ -130,7 +154,7 @@ const s = (p) => {
 };
 
 // --- DRAWING FUNCTIONS ---
-function drawGrid(p) {
+function drawGridAndAxes(p) {
     p.stroke(75, 85, 99);
     p.strokeWeight(1);
 
@@ -138,6 +162,18 @@ function drawGrid(p) {
         p.line(p.width / 3 * i, 0, p.width / 3 * i, p.height);
         p.line(0, p.height / 3 * i, p.width, p.height / 3 * i);
     }
+    
+    // Rita ut skalor och pilar
+    p.stroke(255);
+    p.strokeWeight(1.5);
+    p.line(p.width/2, p.height, p.width/2, 0); // Y-axel (Skicklighet)
+    p.line(0, p.height/2, p.width, p.height/2); // X-axel (Utmaning)
+    
+    // Pilar
+    p.line(p.width/2, 0, p.width/2 - 5, 10);
+    p.line(p.width/2, 0, p.width/2 + 5, 10);
+    p.line(p.width, p.height/2, p.width - 10, p.height/2 - 5);
+    p.line(p.width, p.height/2, p.width - 10, p.height/2 + 5);
 }
 
 function drawPoint(p, point) {
@@ -151,13 +187,26 @@ function drawPoint(p, point) {
     p.fill(pointColor);
     p.noStroke();
     p.ellipse(point.x, point.y, 10);
-    
-    if (point.note) {
-        p.fill(255);
-        p.textSize(10);
-        p.textAlign(p.CENTER, p.BOTTOM);
-        p.text(point.note, point.x, point.y - 12);
+}
+
+function showTooltip() {
+    if (hoveringPointIndex !== -1) {
+        const point = dataPoints[hoveringPointIndex];
+        const date = new Date(point.timestamp);
+        const timeString = date.toLocaleTimeString();
+        const note = point.note ? `<br>"${point.note}"` : '';
+
+        tooltip.innerHTML = `<strong>${point.zone} (${point.mood})</strong><br>Tid: ${timeString}${note}`;
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${point.x}px`;
+        tooltip.style.top = `${point.y}px`;
+    } else {
+        hideTooltip();
     }
+}
+
+function hideTooltip() {
+    tooltip.style.display = 'none';
 }
 
 // --- UI LOGIC ---
@@ -366,7 +415,7 @@ async function analyzeData() {
     let goal = goalInput.value.trim();
     let aiQuestion = aiQuestionInput.value.trim();
 
-    let prompt = `Analysera följande datapunkter och anteckningar från en flow-matris.`;
+    let prompt = `Analysera följande datapunkter och anteckningar från en flow-matris. Förklara kort hur du kom fram till din slutsats baserat på datan.`;
     
     if (goal) {
         prompt += ` Din målsättning är: "${goal}".`
@@ -375,7 +424,7 @@ async function analyzeData() {
          prompt += ` Användaren har också funderat över följande fråga som bakgrund: "${aiQuestion}".`
     }
 
-    prompt += ` Ge en superkort, handlingsbar slutsats i ett enda stycke (**analysis**). Generera sedan ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
+    prompt += ` Ge en superkort, handlingsbar slutsats i ett enda stycke (**analysis**). Generera sedan ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (mainAdvice). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord där det är relevant.`;
     
     if (analysisHistory.length > 0) {
         prompt += ` Tidigare analys: ${JSON.stringify(analysisHistory[analysisHistory.length - 1])}.`;
@@ -443,7 +492,7 @@ async function askAI() {
          prompt += ` Min målsättning är: "${goal}".`;
     }
 
-    prompt += ` Svara kort på följande fråga: ${question}. Efter svaret, ge ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
+    prompt += ` Svara kort på följande fråga: ${question}. Efter svaret, ge ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (mainAdvice). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord där det är relevant.`;
 
     if (analysisHistory.length > 0) {
         prompt += ` Använd gärna den senaste analysen som kontext: ${JSON.stringify(analysisHistory[analysisHistory.length - 1])}.`;
