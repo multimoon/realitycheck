@@ -60,7 +60,20 @@
         .mood-neutral-border { border-left: 4px solid #6B7280; }
         .mood-bad-border { border-left: 4px solid #EF4444; }
         .highlighted-point {
-            background-color: rgba(255, 255, 255, 0.15); /* En vitare färg för highlighting */
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 30;
+            display: none;
+            transform: translate(-50%, -120%);
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -79,7 +92,8 @@
         <div class="flex flex-col space-y-4 p-2 flex-shrink-0">
             <h2 class="text-white text-lg font-bold">Så här fungerar det:</h2>
             <ol class="list-decimal list-inside text-gray-300 space-y-1">
-                <li><strong>Klicka på grafen</strong> för att markera en upplevelse baserat på utmaning och skicklighet.</li>
+                <li><strong>Skriv in ett mål</strong> för vad du strävar efter.</li>
+                <li><strong>Klicka på grafen</strong> för att markera dina upplevelser baserat på utmaning och skicklighet.</li>
                 <li><strong>Välj ditt humör</strong> och lägg till en valfri anteckning.</li>
                 <li><strong>Klicka på "Analysera data"</strong> för att få insikter från AI:n.</li>
             </ol>
@@ -90,15 +104,15 @@
         <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
             <div id="canvas-container" class="relative w-full h-full">
                 <div id="click-marker" class="pulsing-dot hidden"></div>
-                </div>
+            </div>
             
-            <div class="absolute top-1/2 -left-10 transform -translate-y-1/2 -rotate-90 text-white text-md font-bold text-center w-32">Utmaningsnivå</div>
-            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-md font-bold text-center w-32">Skicklighetsnivå</div>
-
-            <div class="absolute top-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Ångest</div>
-            <div class="absolute top-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Flow</div>
-            <div class="absolute bottom-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs">Apati</div>
-            <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs">Avslappning</div>
+            <div class="absolute top-1/2 -left-10 transform -translate-y-1/2 -rotate-90 text-yellow-200 text-sm font-bold text-center w-32">Skicklighetsnivå</div>
+            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-yellow-200 text-sm font-bold text-center w-32">Utmaningsnivå</div>
+            
+            <div class="absolute top-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Ångest<br><span class="text-gray-400 text-[10px]">Låg utmaning, hög skicklighet</span></div>
+            <div class="absolute top-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Flow<br><span class="text-gray-400 text-[10px]">Hög utmaning, hög skicklighet</span></div>
+            <div class="absolute bottom-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Apati<br><span class="text-gray-400 text-[10px]">Låg utmaning, låg skicklighet</span></div>
+            <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Avslappning<br><span class="text-gray-400 text-[10px]">Hög utmaning, låg skicklighet</span></div>
         </div>
 
         <div id="slider-container" class="w-full mt-2 mb-4 hidden">
@@ -139,9 +153,7 @@
             <button id="undo-button" class="bg-gray-600 text-white p-3 rounded-lg shadow-md hover:bg-gray-500 transition-colors flex-1 hidden">
                 Ångra senaste
             </button>
-
         </div>
-
     </div>
 
     <div id="suggestion-modal" class="modal-background">
@@ -175,6 +187,8 @@
             <button id="close-ai-response-button" class="mt-4 bg-gray-600 text-white p-3 rounded-lg w-full hover:bg-gray-500 transition-colors">Stäng</button>
         </div>
     </div>
+    
+    <div id="tooltip" class="tooltip"></div>
 
     <script src="app.js"></script>
 </body>
