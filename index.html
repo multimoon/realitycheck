@@ -77,11 +77,11 @@
         }
     </style>
 </head>
-<body class="flex flex-col items-center p-4 bg-gray-100 text-gray-800 min-h-screen">
+<body class="flex flex-col items-center bg-gray-100 text-gray-800 min-h-screen">
     
-    <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-12">
+    <div class="bg-gray-800 w-full max-w-xl mx-auto rounded-2xl shadow-xl flex flex-col space-y-4 my-12">
 
-        <div class="flex flex-col items-center text-white text-center mb-4">
+        <div class="flex flex-col items-center text-white text-center mb-4 p-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mt-8 mb-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
@@ -89,7 +89,7 @@
             <p class="text-gray-400 mt-2">Ditt AI-drivna verktyg för datadriven självutveckling. Logga dina upplevelser och få personliga insikter för ett mer engagerande och meningsfullt liv.</p>
         </div>
 
-        <div class="flex flex-col space-y-4 p-2 flex-shrink-0">
+        <div class="flex flex-col space-y-4 p-4 flex-shrink-0">
             <h2 class="text-white text-lg font-bold">Så här fungerar det:</h2>
             <ol class="list-decimal list-inside text-gray-300 space-y-1">
                 <li><strong>Skriv in ett mål</strong> för vad du strävar efter.</li>
@@ -99,9 +99,9 @@
             </ol>
         </div>
         
-        <input type="text" id="goal-input" placeholder="Skriv din målsättning här (t.ex. 'Uppnå flow i jobbet')" class="w-full p-3 bg-gray-600 text-white rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" id="goal-input" placeholder="Skriv din målsättning här (t.ex. 'Uppnå flow i jobbet')" class="w-full p-3 bg-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
         
-        <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
+        <div class="relative w-full aspect-square bg-gray-700 shadow-inner overflow-hidden flex-shrink-0">
             <div id="canvas-container" class="relative w-full h-full">
                 <div id="click-marker" class="pulsing-dot hidden"></div>
             </div>
@@ -115,7 +115,7 @@
             <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Avslappning<br><span class="text-gray-400 text-[10px]">Låg utmaning, hög skicklighet</span></div>
         </div>
 
-        <div id="slider-container" class="w-full mt-2 mb-4 hidden">
+        <div id="slider-container" class="w-full mt-2 mb-4 hidden p-4">
             <input type="range" id="data-slider" min="0" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
             <div class="flex justify-center text-gray-400 text-sm mt-2">
                 <span id="slider-time"></span>
@@ -146,7 +146,7 @@
                 </div>
         </div>
 
-        <div class="flex justify-between items-center space-x-4 mt-auto">
+        <div class="flex justify-between items-center space-x-4 mt-auto p-4">
             <button id="reset-button" class="bg-red-400 text-white p-3 rounded-lg shadow-md hover:bg-red-400 transition-colors flex-2 hidden">
                 Nollställ allt
             </button>
