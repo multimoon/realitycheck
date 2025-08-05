@@ -54,34 +54,66 @@
             animation: pulse 1.5s infinite;
             pointer-events: none;
             z-index: 10;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); /* Centrera pricken */
         }
         .mood-good-border { border-left: 4px solid #10B981; }
         .mood-neutral-border { border-left: 4px solid #6B7280; }
         .mood-bad-border { border-left: 4px solid #EF4444; }
         .highlighted-point {
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: #60a5fa !important;
+            box-shadow: 0 0 10px #60a5fa;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .tooltip {
+        .zone-overlay {
             position: absolute;
-            background-color: rgba(0, 0, 0, 0.75);
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 12px;
+            width: 33.33%;
+            height: 33.33%;
+            background-color: transparent;
+            transition: background-color 0.2s;
             pointer-events: none;
-            z-index: 30;
-            display: none;
-            transform: translate(-50%, -120%);
-            white-space: nowrap;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem; /* Mindre text */
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .flash-apati {
+            background-color: rgba(255, 255, 255, 0.1);
+            opacity: 1;
+        }
+        .flash-vardag {
+            background-color: rgba(255, 255, 255, 0.2);
+            opacity: 1;
+        }
+        .flash-flow {
+            background-color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+        }
+
+        @keyframes pulse-opacity {
+            0% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.5;
+            }
+        }
+        .pulsing-arrow {
+            animation: pulse-opacity 1.5s infinite ease-in-out;
         }
     </style>
 </head>
 <body class="flex flex-col items-center bg-gray-100 text-gray-800 min-h-screen">
-    
-    <div class="bg-gray-800 w-full max-w-xl mx-auto rounded-2xl shadow-xl flex flex-col space-y-4 mb-12 p-4">
 
-        <div class="flex flex-col items-center text-white text-center">
+    <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-4">
+
+        <div class="flex flex-col items-center text-white text-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mt-8 mb-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
@@ -89,30 +121,48 @@
             <p class="text-gray-400 mt-2">Ditt AI-drivna verktyg för datadriven självutveckling. Logga dina upplevelser och få personliga insikter för ett mer engagerande och meningsfullt liv.</p>
         </div>
 
-        <div class="flex flex-col space-y-4 flex-shrink-0">
+        <div class="flex flex-col space-y-4 p-2 flex-shrink-0">
             <h2 class="text-white text-lg font-bold">Så här fungerar det:</h2>
             <ol class="list-decimal list-inside text-gray-300 space-y-1">
-                <li><strong>Skriv in ett mål</strong> för vad du strävar efter.</li>
-                <li><strong>Klicka på grafen</strong> för att markera dina upplevelser baserat på utmaning och skicklighet.</li>
-                <li><strong>Välj ditt humör</strong> och lägg till en valfri anteckning.</li>
-                <li><strong>Klicka på "Analysera data"</strong> för att få insikter från AI:n.</li>
+                <li><strong>Sätt ditt mål:</strong> Vad vill du uppnå?</li>
+                <li><strong>Logga upplevelser:</strong> Klicka på grafen för att markera dina känslor, lägg till anteckningar för att samla data.</li>
+                <li><strong>Få AI-insikter:</strong> Få personliga råd baserat på dina mönster.</li>
             </ol>
         </div>
         
         <input type="text" id="goal-input" placeholder="Skriv din målsättning här (t.ex. 'Uppnå flow i jobbet')" class="w-full p-3 bg-gray-600 text-white rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
         
-        <div class="relative w-full aspect-square bg-gray-700 shadow-inner overflow-hidden flex-shrink-0 rounded-lg">
+        <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
             <div id="canvas-container" class="relative w-full h-full">
+                <div id="flash-zone-apati" class="zone-overlay" style="top: 66.66%; left: 0;"></div>
+                <div id="flash-zone-vardag" class="zone-overlay" style="top: 33.33%; left: 33.33%;"></div>
+                <div id="flash-zone-flow" class="zone-overlay" style="top: 0; left: 66.66%;">Flow</div>
                 <div id="click-marker" class="pulsing-dot hidden"></div>
             </div>
             
-            <div class="absolute top-1/2 -left-10 transform -translate-y-1/2 -rotate-90 text-yellow-200 text-sm font-bold text-center w-32">Skicklighetsnivå</div>
-            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-yellow-200 text-sm font-bold text-center w-32">Utmaningsnivå</div>
+            <div class="absolute top-1/2 -left-12 transform -translate-y-1/2 -rotate-90 text-white text-md font-bold text-center w-32 flex flex-col items-center justify-center space-y-2">
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white pulsing-arrow" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Utmaningsnivå</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white pulsing-arrow" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
             
-            <div class="absolute top-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Ångest<br><span class="text-gray-400 text-[10px]">Hög utmaning, låg skicklighet</span></div>
-            <div class="absolute top-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Flow<br><span class="text-gray-400 text-[10px]">Hög utmaning, hög skicklighet</span></div>
-            <div class="absolute bottom-2 left-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Apati<br><span class="text-gray-400 text-[10px]">Låg utmaning, låg skicklighet</span></div>
-            <div class="absolute bottom-2 right-2 text-white bg-gray-700 p-1 rounded-md text-xs text-center w-24">Avslappning<br><span class="text-gray-400 text-[10px]">Låg utmaning, hög skicklighet</span></div>
+            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white text-md font-bold text-center w-48 flex items-center justify-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white pulsing-arrow" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                <span>Skicklighetsnivå</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white pulsing-arrow" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+            </div>
+
+            
         </div>
 
         <div id="slider-container" class="w-full mt-2 mb-4 hidden">
@@ -153,7 +203,9 @@
             <button id="undo-button" class="bg-gray-600 text-white p-3 rounded-lg shadow-md hover:bg-gray-500 transition-colors flex-1 hidden">
                 Ångra senaste
             </button>
+
         </div>
+
     </div>
 
     <div id="suggestion-modal" class="modal-background">
@@ -187,8 +239,6 @@
             <button id="close-ai-response-button" class="mt-4 bg-gray-600 text-white p-3 rounded-lg w-full hover:bg-gray-500 transition-colors">Stäng</button>
         </div>
     </div>
-    
-    <div id="tooltip" class="tooltip"></div>
 
     <script src="app.js"></script>
 </body>
