@@ -833,8 +833,7 @@ goalManagementModal.addEventListener('click', (e) => {
 // Stoppa eventbubbling för de inre boxarna
 document.getElementById('suggestion-box').addEventListener('click', (e) => e.stopPropagation());
 document.getElementById('note-box').addEventListener('click', (e) => e.stopPropagation());
-document.querySelector('#goal-management-modal > div').addEventListener('click', (e) => e.stopPropagation());
-
+document.querySelector('#goal-management-modal .bg-gray-800').addEventListener('click', (e) => e.stopPropagation());
 
 dataSlider.addEventListener('input', updateCanvasWithSlider);
 
