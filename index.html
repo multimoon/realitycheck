@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowCheck</title>
+    <title>FLOWCHECK</title>
+    <link rel="icon" type="image/webp" href="url.webp">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
@@ -23,7 +24,7 @@
             justify-content: center;
             align-items: center;
         }
-        #note-modal, #suggestion-modal, #ai-response-modal {
+        #note-modal, #suggestion-modal, #ai-response-modal, #goal-management-modal {
             display: none;
         }
         .spinner {
@@ -111,26 +112,47 @@
 </head>
 <body class="flex flex-col items-center bg-gray-100 text-gray-800 min-h-screen">
 
-    <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-4">
-
-        <div class="flex flex-col items-center text-white text-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mt-8 mb-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <h1 class="text-3xl font-bold">FlowCheck</h1>
-            <p class="text-gray-400 mt-2">Ditt AI-drivna verktyg för datadriven självutveckling. Logga dina upplevelser och få personliga insikter för ett mer engagerande och meningsfullt liv.</p>
+    <div class="bg-gray-800 p-4 w-full max-w-lg rounded-2xl shadow-xl flex flex-col space-y-4 my-4 relative">
+        <div class="flex items-center justify-between">
+            <button id="toggle-intro-button" class="text-white p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+            </button>
+            <div id="header-content" class="flex items-center space-x-2 hidden">
+                <img src="url.webp" alt="FlowCheck logotyp" class="h-8 w-8">
+            </div>
         </div>
 
-        <div class="flex flex-col space-y-4 p-2 flex-shrink-0">
-            <h2 class="text-white text-lg font-bold">Så här fungerar det:</h2>
-            <ol class="list-decimal list-inside text-gray-300 space-y-1">
-                <li><strong>Sätt ditt mål:</strong> Vad vill du uppnå?</li>
-                <li><strong>Logga upplevelser:</strong> Klicka på grafen för att markera dina känslor, lägg till anteckningar för att samla data.</li>
-                <li><strong>Få AI-insikter:</strong> Få personliga råd baserat på dina mönster.</li>
-            </ol>
+        <div id="intro-content">
+            <div class="flex flex-col items-center text-white text-center mb-4">
+                <img src="url.webp" alt="FlowCheck logotyp" class="h-12 w-12 text-green-500 mb-2">
+                <h1 class="text-3xl font-bold mt-2">FLOWCHECK</h1>
+                <p class="text-gray-400 mt-4">Ditt AI-drivna verktyg för datadriven självutveckling. Logga dina upplevelser och få personliga insikter för ett mer engagerande och meningsfullt liv.</p>
+            </div>
+            <div class="flex flex-col space-y-4 p-2 flex-shrink-0">
+                <h2 class="text-white text-lg font-bold">Så här fungerar det:</h2>
+                <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                    <li><strong>Sätt dina mål:</strong> Vad vill du uppnå?</li>
+                    <li><strong>Logga upplevelser:</strong> Klicka på grafen för att markera dina känslor, lägg till anteckningar för att samla data.</li>
+                    <li><strong>Få AI-insikter:</strong> Få personliga råd baserat på dina mönster.</li>
+                </ol>
+            </div>
         </div>
-        
-        <input type="text" id="goal-input" placeholder="Skriv din målsättning här (t.ex. 'Uppnå flow i jobbet')" class="w-full p-3 bg-gray-600 text-white rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+        <div class="p-2 bg-gray-700 rounded-lg flex items-center justify-between text-center">
+            <button id="prev-goal-button" class="text-white p-2 rounded-lg hover:bg-gray-600 transition-colors hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <p id="active-goal-text" class="text-white font-bold text-2xl flex-1 cursor-pointer hover:underline truncate px-2"></p>
+            <button id="next-goal-button" class="text-white p-2 rounded-lg hover:bg-gray-600 transition-colors hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
         
         <div class="relative w-full aspect-square bg-gray-700 rounded-lg shadow-inner overflow-hidden flex-shrink-0">
             <div id="canvas-container" class="relative w-full h-full">
@@ -161,8 +183,6 @@
                     <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
             </div>
-
-            
         </div>
 
         <div id="slider-container" class="w-full mt-2 mb-4 hidden">
@@ -190,7 +210,7 @@
         </div>
 
 
-        <div id="data-points-list-container" class="bg-gray-700 rounded-lg p-4 overflow-y-auto min-h-[100px] flex-1">
+        <div id="data-points-list-container" class="bg-gray-700 rounded-lg p-4 overflow-y-auto max-h-96 flex-1">
             <h3 class="text-white text-lg font-bold mb-2">Dina datapunkter</h3>
             <div id="points-list" class="space-y-2">
                 </div>
@@ -237,6 +257,23 @@
             <div id="ai-response-text" class="text-gray-300 mb-4 overflow-y-auto max-h-64"></div>
             <div id="ai-loading-spinner" class="spinner"></div>
             <button id="close-ai-response-button" class="mt-4 bg-gray-600 text-white p-3 rounded-lg w-full hover:bg-gray-500 transition-colors">Stäng</button>
+        </div>
+    </div>
+
+    <div id="goal-management-modal" class="modal-background">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl w-11/12 max-w-md text-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">Hantera dina mål</h3>
+                <button id="close-goal-management-button" class="text-white text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div id="goal-list" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                </div>
+            
+            <div class="flex items-center space-x-2">
+                <input type="text" id="new-goal-input" placeholder="Nytt målnamn" class="w-full p-2 bg-gray-700 text-white rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="add-goal-button" class="bg-green-500 text-white p-2 rounded-md font-semibold hover:bg-green-600 transition-colors flex-shrink-0">Lägg till</button>
+            </div>
         </div>
     </div>
 
