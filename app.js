@@ -1,6 +1,6 @@
 // Globala variabler
-let dataPoints = [];
-let analysisHistory = [];
+let allSessions = [];
+let currentSessionIndex = 0;
 let p5SketchInstance = null;
 let tempPointData = null;
 let clickedPosition = null;
@@ -13,7 +13,6 @@ let flashingInterval = null;
 const pointsList = document.getElementById('points-list');
 const undoButton = document.getElementById('undo-button');
 const resetButton = document.getElementById('reset-button');
-const goalInput = document.getElementById('goal-input');
 const suggestionModal = document.getElementById('suggestion-modal');
 const noteModal = document.getElementById('note-modal');
 const noteInput = document.getElementById('note-input');
@@ -32,35 +31,212 @@ const analyzeDataButton = document.getElementById('analyze-data-button');
 const askAiButton = document.getElementById('ask-ai-button');
 const sliderContainer = document.getElementById('slider-container');
 
+// NEW UI elements for goal management
+const activeGoalText = document.getElementById('active-goal-text');
+const goalManagementModal = document.getElementById('goal-management-modal');
+const closeGoalManagementButton = document.getElementById('close-goal-management-button');
+const goalList = document.getElementById('goal-list');
+const newGoalInput = document.getElementById('new-goal-input');
+const addGoalButton = document.getElementById('add-goal-button');
+
+// NEW UI elements for goal navigation
+const prevGoalButton = document.getElementById('prev-goal-button');
+const nextGoalButton = document.getElementById('next-goal-button');
+
+// NEW UI elements for intro toggle
+const toggleIntroButton = document.getElementById('toggle-intro-button');
+const introContent = document.getElementById('intro-content');
+const toggleIcon = document.getElementById('toggle-icon');
+const headerContent = document.getElementById('header-content'); // New element to reference
+
 // API-nyckel för Gemini API (Ska hanteras säkert på serversidan i produktion)
 const API_KEY = "AIzaSyDmibgNIuPpd1girl8msyfMxnFqSzNWxAw";
 
 // --- LOKAL LAGRING ---
 function saveData() {
-    localStorage.setItem('dataPoints', JSON.stringify(dataPoints));
-    localStorage.setItem('analysisHistory', JSON.stringify(analysisHistory));
-    localStorage.setItem('goal', goalInput.value);
+    localStorage.setItem('allSessions', JSON.stringify(allSessions));
+    localStorage.setItem('currentSessionIndex', currentSessionIndex);
 }
 
 function loadData() {
-    const savedDataPoints = localStorage.getItem('dataPoints');
-    const savedAnalysisHistory = localStorage.getItem('analysisHistory');
-    const savedGoal = localStorage.getItem('goal');
+    const savedSessions = localStorage.getItem('allSessions');
+    const savedIndex = localStorage.getItem('currentSessionIndex');
     
-    if (savedDataPoints) {
-        dataPoints = JSON.parse(savedDataPoints);
-    }
-    if (savedAnalysisHistory) {
-        analysisHistory = JSON.parse(savedAnalysisHistory);
-        if (analysisHistory.length > 0) {
-            const lastAnalysis = analysisHistory[analysisHistory.length - 1];
-            updateMainAdviceBox(lastAnalysis.mainAdvice, lastAnalysis.mainQuestion);
+    if (savedSessions) {
+        allSessions = JSON.parse(savedSessions);
+        if (savedIndex !== null) {
+            currentSessionIndex = parseInt(savedIndex);
         }
+        if (allSessions.length === 0) {
+            createNewSession('Mitt första mål');
+        }
+    } else {
+        createNewSession('Mitt första mål');
     }
-    if (savedGoal) {
-        goalInput.value = savedGoal;
+    
+    updateUIForCurrentSession();
+}
+
+// --- SESSION MANAGEMENT FUNCTIONS ---
+function createNewSession(goalName) {
+    const newSession = {
+        goal: goalName,
+        dataPoints: [],
+        analysisHistory: []
+    };
+    allSessions.push(newSession);
+    currentSessionIndex = allSessions.length - 1;
+    saveData();
+    updateUIForCurrentSession();
+    updateGoalListInModal();
+}
+
+function switchSession(index) {
+    currentSessionIndex = parseInt(index);
+    saveData();
+    updateUIForCurrentSession();
+    closeGoalManagementModal();
+}
+
+function goToPrevSession() {
+    if (allSessions.length > 1) {
+        currentSessionIndex = (currentSessionIndex - 1 + allSessions.length) % allSessions.length;
+        saveData();
+        updateUIForCurrentSession();
     }
 }
+
+function goToNextSession() {
+    if (allSessions.length > 1) {
+        currentSessionIndex = (currentSessionIndex + 1) % allSessions.length;
+        saveData();
+        updateUIForCurrentSession();
+    }
+}
+
+function deleteSession(index) {
+    if (allSessions.length > 1) {
+        if (confirm(`Är du säker på att du vill ta bort målet "${allSessions[index].goal}"?`)) {
+            allSessions.splice(index, 1);
+            currentSessionIndex = Math.max(0, currentSessionIndex - 1);
+            saveData();
+            updateGoalListInModal();
+            updateUIForCurrentSession();
+        }
+    } else {
+        alert('Du kan inte ta bort det sista målet. Skapa ett nytt först om du vill byta!');
+    }
+}
+
+function updateUIForCurrentSession() {
+    const currentSession = allSessions[currentSessionIndex];
+    
+    activeGoalText.textContent = currentSession.goal;
+    
+    // Toggle navigation arrows based on the number of sessions
+    if (allSessions.length > 1) {
+        prevGoalButton.classList.remove('hidden');
+        nextGoalButton.classList.remove('hidden');
+    } else {
+        prevGoalButton.classList.add('hidden');
+        nextGoalButton.classList.add('hidden');
+    }
+    
+    // Now, `dataPoints` and `analysisHistory` refer to the current session's data
+    dataPoints = currentSession.dataPoints; 
+    analysisHistory = currentSession.analysisHistory;
+    
+    updateDataPointsList();
+    updateSlider();
+    p5SketchInstance.redraw();
+    
+    if (currentSession.analysisHistory.length > 0) {
+        const lastAnalysis = currentSession.analysisHistory[currentSession.analysisHistory.length - 1];
+        updateMainAdviceBox(lastAnalysis.mainAdvice, lastAnalysis.mainQuestion);
+    } else {
+        updateMainAdviceBox('Vänta på din första analys för att få ditt huvudråd!', 'Vänta på din första analys för att få din huvudfråga!');
+    }
+}
+
+function showGoalManagementModal() {
+    isModalOpen = true;
+    updateGoalListInModal();
+    goalManagementModal.style.display = 'flex';
+}
+
+function closeGoalManagementModal() {
+    isModalOpen = false;
+    goalManagementModal.style.display = 'none';
+    newGoalInput.value = '';
+}
+
+function updateGoalListInModal() {
+    goalList.innerHTML = '';
+    allSessions.forEach((session, index) => {
+        const goalItem = document.createElement('div');
+        goalItem.className = 'bg-gray-700 p-3 rounded-lg flex items-center space-x-2 transition-colors';
+        if (index === currentSessionIndex) {
+            goalItem.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        } else {
+            goalItem.classList.add('hover:bg-gray-600', 'cursor-pointer');
+        }
+
+        const goalNameSpan = document.createElement('span');
+        goalNameSpan.className = 'flex-1 text-white truncate';
+        goalNameSpan.textContent = session.goal || `Mål ${index + 1}`;
+        goalItem.appendChild(goalNameSpan);
+        
+        if (index !== currentSessionIndex) {
+            goalItem.addEventListener('click', () => switchSession(index));
+        }
+
+        const editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.className = 'w-full p-2 bg-gray-600 text-white rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden';
+        editInput.value = session.goal;
+        goalItem.appendChild(editInput);
+        
+        const editButton = document.createElement('button');
+        editButton.className = 'p-1 text-gray-400 hover:text-white';
+        editButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>`;
+        editButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (editInput.classList.contains('hidden')) {
+                goalNameSpan.classList.add('hidden');
+                editInput.classList.remove('hidden');
+                editInput.focus();
+            } else {
+                goalNameSpan.classList.remove('hidden');
+                editInput.classList.add('hidden');
+                session.goal = editInput.value;
+                saveData();
+                updateUIForCurrentSession();
+                updateGoalListInModal(); // Uppdatera listan omedelbart
+            }
+        });
+        goalItem.appendChild(editButton);
+        
+        editInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                editButton.click();
+            }
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'p-1 text-gray-400 hover:text-red-500';
+        deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`;
+        deleteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteSession(index);
+        });
+        if (allSessions.length > 1) {
+             goalItem.appendChild(deleteButton);
+        }
+
+        goalList.appendChild(goalItem);
+    });
+}
+
 
 // --- P5.js SKETCH ---
 const s = (p) => {
@@ -115,14 +291,16 @@ const s = (p) => {
         p.background(55, 65, 81);
         drawGrid(p);
         
+        const currentSessionDataPoints = allSessions[currentSessionIndex] ? allSessions[currentSessionIndex].dataPoints : [];
         const pointsToShowCount = sliderValue + 1;
-        for (let i = 0; i < pointsToShowCount && i < dataPoints.length; i++) {
-             drawPoint(p, dataPoints[i]);
+        for (let i = 0; i < pointsToShowCount && i < currentSessionDataPoints.length; i++) {
+             drawPoint(p, currentSessionDataPoints[i]);
         }
         
         if (clickedPosition) {
-            clickMarker.style.left = `${clickedPosition.x}px`;
-            clickMarker.style.top = `${clickedPosition.y}px`;
+            // Flytta 10px upp och 10px åt vänster
+            clickMarker.style.left = `${clickedPosition.x - 11}px`;
+            clickMarker.style.top = `${clickedPosition.y - 12}px`;
             clickMarker.classList.remove('hidden');
         } else {
             clickMarker.classList.add('hidden');
@@ -191,22 +369,24 @@ function showNoteModal(index = null) {
     editingPointIndex = index;
     noteModal.style.display = 'flex';
     
-    if (index !== null && dataPoints[index] && dataPoints[index].note) {
-        noteInput.value = dataPoints[index].note;
+    const currentSessionDataPoints = allSessions[currentSessionIndex].dataPoints;
+    if (index !== null && currentSessionDataPoints[index] && currentSessionDataPoints[index].note) {
+        noteInput.value = currentSessionDataPoints[index].note;
     } else {
         noteInput.value = '';
     }
     
-    noteInput.focus();
 }
 
 function finalizePoint(note = '') {
+    const currentSession = allSessions[currentSessionIndex];
+
     if (editingPointIndex !== null) {
-        dataPoints[editingPointIndex].note = note.trim();
+        currentSession.dataPoints[editingPointIndex].note = note.trim();
         editingPointIndex = null;
     } else if (tempPointData) {
         tempPointData.note = note.trim();
-        dataPoints.push(tempPointData);
+        currentSession.dataPoints.push(tempPointData);
         tempPointData = null;
     }
 
@@ -228,13 +408,14 @@ function closeAIResponseModal() {
 }
 
 function updateDataPointsList() {
+    const currentSession = allSessions[currentSessionIndex];
     pointsList.innerHTML = '';
     // Visa de senaste först
-    const reversedDataPoints = [...dataPoints].reverse(); 
+    const reversedDataPoints = [...currentSession.dataPoints].reverse(); 
     reversedDataPoints.forEach((point, i) => {
         const pointElement = document.createElement('div');
         pointElement.className = `flex justify-between items-center p-2 rounded-md data-point cursor-pointer transition-colors mood-${point.mood}-border`;
-        pointElement.dataset.index = dataPoints.length - 1 - i;
+        pointElement.dataset.index = currentSession.dataPoints.length - 1 - i; // Original index
         
         pointElement.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -262,7 +443,7 @@ function updateDataPointsList() {
     highlightActivePoint(sliderValue);
     p5SketchInstance.redraw();
     
-    if (dataPoints.length > 0) {
+    if (currentSession.dataPoints.length > 0) {
         undoButton.classList.remove('hidden');
         resetButton.classList.remove('hidden');
     } else {
@@ -288,12 +469,14 @@ function updateMainAdviceBox(advice, question) {
 }
 
 function updateSlider() {
-    if (dataPoints.length > 0) {
+    const currentSessionDataPoints = allSessions[currentSessionIndex].dataPoints;
+
+    if (currentSessionDataPoints.length > 0) {
         sliderContainer.classList.remove('hidden');
         dataSlider.disabled = false;
-        dataSlider.max = dataPoints.length - 1;
-        dataSlider.value = dataPoints.length - 1;
-        sliderValue = dataPoints.length - 1;
+        dataSlider.max = currentSessionDataPoints.length - 1;
+        dataSlider.value = currentSessionDataPoints.length - 1;
+        sliderValue = currentSessionDataPoints.length - 1;
         
         updateSliderTimeDisplay();
     } else {
@@ -308,8 +491,10 @@ function updateSlider() {
 }
 
 function updateSliderTimeDisplay() {
-    if (dataPoints.length > 0) {
-        const selectedPoint = dataPoints[sliderValue];
+    const currentSessionDataPoints = allSessions[currentSessionIndex].dataPoints;
+
+    if (currentSessionDataPoints.length > 0) {
+        const selectedPoint = currentSessionDataPoints[sliderValue];
         const timeString = new Date(selectedPoint.timestamp).toLocaleTimeString();
         sliderTime.textContent = `Tid: ${timeString}`;
     }
@@ -323,8 +508,9 @@ function updateCanvasWithSlider() {
 }
 
 function undoLastPoint() {
-    if (dataPoints.length > 0) {
-        dataPoints.pop();
+    const currentSession = allSessions[currentSessionIndex];
+    if (currentSession.dataPoints.length > 0) {
+        currentSession.dataPoints.pop();
         updateDataPointsList();
         updateSlider();
         saveData();
@@ -332,26 +518,33 @@ function undoLastPoint() {
 }
 
 function resetApp() {
-    dataPoints = [];
-    analysisHistory = [];
-    goalInput.value = '';
-    updateDataPointsList();
-    updateMainAdviceBox('Vänta på din första analys för att få ditt huvudråd!', 'Vänta på din första analys för att få din huvudfråga!');
-    updateSlider();
-    p5SketchInstance.redraw();
-    suggestionModal.style.display = 'none';
-    noteModal.style.display = 'none';
-    aiResponseModal.style.display = 'none';
-    isModalOpen = false;
-    clickedPosition = null;
-    saveData();
+    if (confirm('Är du säker på att du vill nollställa ALL data för det här målet?')) {
+        const currentSession = allSessions[currentSessionIndex];
+        currentSession.dataPoints = [];
+        currentSession.analysisHistory = [];
+        currentSession.goal = 'Nytt mål';
+
+        updateDataPointsList();
+        updateMainAdviceBox('Vänta på din första analys för att få ditt huvudråd!', 'Vänta på din första analys för att få din huvudfråga!');
+        updateSlider();
+        p5SketchInstance.redraw();
+        suggestionModal.style.display = 'none';
+        noteModal.style.display = 'none';
+        aiResponseModal.style.display = 'none';
+        isModalOpen = false;
+        clickedPosition = null;
+        saveData();
+        updateUIForCurrentSession();
+    }
 }
 
 // AI-relaterade funktioner
 async function analyzeData() {
     if (isModalOpen) return;
     
-    if (dataPoints.length === 0) {
+    const currentSession = allSessions[currentSessionIndex];
+
+    if (currentSession.dataPoints.length === 0) {
         isModalOpen = true;
         showAIResponse("Analys av data", "Du har inga datapunkter att analysera än. Klicka på grafen för att lägga till din första punkt.");
         return;
@@ -364,7 +557,7 @@ async function analyzeData() {
     aiLoadingSpinner.style.display = 'block';
     aiResponseModal.style.display = 'flex';
 
-    let goal = goalInput.value.trim();
+    let goal = currentSession.goal.trim();
     let aiQuestion = aiQuestionInput.value.trim();
 
     let prompt = `Analysera följande datapunkter och anteckningar från en flow-matris.`;
@@ -378,11 +571,11 @@ async function analyzeData() {
 
     prompt += ` Ge en superkort, handlingsbar slutsats i ett enda stycke (**analysis**). Generera sedan ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
     
-    if (analysisHistory.length > 0) {
-        prompt += ` Tidigare analys: ${JSON.stringify(analysisHistory[analysisHistory.length - 1])}.`;
+    if (currentSession.analysisHistory.length > 0) {
+        prompt += ` Tidigare analys: ${JSON.stringify(currentSession.analysisHistory[currentSession.analysisHistory.length - 1])}.`;
     }
 
-    prompt += ` Datapunkter: ${JSON.stringify(dataPoints)}.`;
+    prompt += ` Datapunkter: ${JSON.stringify(currentSession.dataPoints)}.`;
 
     const responseSchema = {
         type: "OBJECT",
@@ -398,7 +591,7 @@ async function analyzeData() {
         const result = await callGeminiAPI(prompt, responseSchema);
         const parsedResult = JSON.parse(result);
 
-        analysisHistory.push(parsedResult);
+        currentSession.analysisHistory.push(parsedResult);
         saveData();
         
         const formattedAnalysis = parsedResult.analysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -424,7 +617,8 @@ async function askAI() {
         return;
     }
 
-    if (dataPoints.length === 0) {
+    const currentSession = allSessions[currentSessionIndex];
+    if (currentSession.dataPoints.length === 0) {
         isModalOpen = true;
         showAIResponse("Fråga AI", "Du har inga datapunkter att referera till i din fråga. Vänligen lägg till minst en punkt först.");
         return;
@@ -437,8 +631,8 @@ async function askAI() {
     aiLoadingSpinner.style.display = 'block';
     aiResponseModal.style.display = 'flex';
 
-    let goal = goalInput.value.trim();
-    let prompt = `Här är min historik av datapunkter och anteckningar från en flow-matris: ${JSON.stringify(dataPoints)}.`;
+    let goal = currentSession.goal.trim();
+    let prompt = `Här är min historik av datapunkter och anteckningar från en flow-matris: ${JSON.stringify(currentSession.dataPoints)}.`;
     
     if (goal) {
          prompt += ` Min målsättning är: "${goal}".`;
@@ -446,8 +640,8 @@ async function askAI() {
 
     prompt += ` Svara kort på följande fråga: ${question}. Efter svaret, ge ett kortfattat, övergripande råd som ett "mantra" som sammanfattar din rekommendation baserad på all data (**mainAdvice**). Avsluta med att skapa en öppen, reflekterande fråga (**mainQuestion**) som användaren kan ställa till sig själv för att fatta bättre beslut. Använd fetstil (**text**) för nyckelord i alla tre fält.`;
 
-    if (analysisHistory.length > 0) {
-        prompt += ` Använd gärna den senaste analysen som kontext: ${JSON.stringify(analysisHistory[analysisHistory.length - 1])}.`;
+    if (currentSession.analysisHistory.length > 0) {
+        prompt += ` Använd gärna den senaste analysen som kontext: ${JSON.stringify(currentSession.analysisHistory[currentSession.analysisHistory.length - 1])}.`;
     }
     
     const responseSchema = {
@@ -464,7 +658,7 @@ async function askAI() {
         const result = await callGeminiAPI(prompt, responseSchema);
         const parsedResult = JSON.parse(result);
 
-        analysisHistory.push(parsedResult);
+        currentSession.analysisHistory.push(parsedResult);
         saveData();
 
         const formattedAnalysis = parsedResult.analysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -589,7 +783,28 @@ resetButton.addEventListener('click', (e) => { e.stopPropagation(); resetApp(); 
 document.getElementById('close-ai-response-button').addEventListener('click', (e) => { e.stopPropagation(); closeAIResponseModal(); });
 analyzeDataButton.addEventListener('click', (e) => { e.stopPropagation(); analyzeData(); });
 askAiButton.addEventListener('click', (e) => { e.stopPropagation(); askAI(); });
-goalInput.addEventListener('input', saveData);
+
+// NEW event listeners for goal management modal and navigation
+activeGoalText.addEventListener('click', showGoalManagementModal);
+closeGoalManagementButton.addEventListener('click', closeGoalManagementModal);
+addGoalButton.addEventListener('click', () => {
+    const newGoalName = newGoalInput.value.trim();
+    if (newGoalName) {
+        createNewSession(newGoalName);
+        newGoalInput.value = '';
+    } else {
+        alert('Vänligen ge ditt nya mål ett namn.');
+    }
+});
+prevGoalButton.addEventListener('click', (e) => { e.stopPropagation(); goToPrevSession(); });
+nextGoalButton.addEventListener('click', (e) => { e.stopPropagation(); goToNextSession(); });
+
+// Event listener for intro toggle
+toggleIntroButton.addEventListener('click', () => {
+    introContent.classList.toggle('hidden');
+    headerContent.classList.toggle('hidden'); // New line to toggle the new header div
+    toggleIcon.classList.toggle('rotate-180');
+});
 
 // Lyssnare för modalerna
 suggestionModal.addEventListener('click', (e) => {
@@ -609,9 +824,17 @@ noteModal.addEventListener('click', (e) => {
     }
 });
 
+goalManagementModal.addEventListener('click', (e) => {
+    if (e.target.id === 'goal-management-modal') {
+        closeGoalManagementModal();
+    }
+});
+
 // Stoppa eventbubbling för de inre boxarna
 document.getElementById('suggestion-box').addEventListener('click', (e) => e.stopPropagation());
 document.getElementById('note-box').addEventListener('click', (e) => e.stopPropagation());
+document.querySelector('#goal-management-modal > div').addEventListener('click', (e) => e.stopPropagation());
+
 
 dataSlider.addEventListener('input', updateCanvasWithSlider);
 
@@ -619,6 +842,5 @@ dataSlider.addEventListener('input', updateCanvasWithSlider);
 window.onload = function() {
     p5SketchInstance = new p5(s);
     loadData();
-    updateSlider();
     startZoneFlashing();
 }
